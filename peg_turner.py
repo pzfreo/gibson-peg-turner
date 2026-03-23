@@ -64,7 +64,7 @@ FLANGE_DIA    = 14.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
-HEATSET_DIA   = 5.0
+HEATSET_DIA   = 4.8    # slightly under 5mm insert for snug melt-in grip
 HEATSET_DEPTH = 6.0    # deep enough for 8mm bolt (minus washer + gap)
 
 # ─── Handle Knob ──────────────────────────────────────
