@@ -48,7 +48,7 @@ POCKET_DEPTH  = TPU_HEIGHT                     # 19.0
 POCKET_CHAMFER = 0.5
 
 # ─── T-Handle Arm ─────────────────────────────────────
-ARM_LENGTH = 15.0    # socket center → bushing center (X)
+ARM_LENGTH = 23.0    # socket center → bushing center (X)
 ARM_WIDTH  = 12.0    # Y — horizontal on bed
 ARM_HEIGHT = 8.0     # Z — through-bore, no floor needed
 ARM_RADIUS = 2.0     # corner rounding
