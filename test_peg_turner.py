@@ -6,13 +6,13 @@ from peg_turner import (
     build_tpu_insert,
     build_socket_body,
     build_handle_knob,
+    build_retaining_washer,
     build_ghost_bolt,
-    build_ghost_washer,
     build_ghost_heatset,
     # Parameters
     SLOT_WIDTH, SLOT_LENGTH, SLOT_DEPTH, SLOT_CHAMFER,
     TPU_WALL, TPU_SHORT, TPU_LONG, TPU_HEIGHT,
-    SOCKET_WALL, SOCKET_SHORT, SOCKET_LONG, SOCKET_HEIGHT,
+    SOCKET_WALL, SOCKET_SHORT, SOCKET_LONG, SOCKET_HEIGHT, SOCKET_CAP,
     POCKET_DEPTH,
     ARM_LENGTH, ARM_WIDTH, ARM_HEIGHT,
     ARM_Z_BOTTOM, ARM_Z_TOP,
@@ -21,7 +21,7 @@ from peg_turner import (
     HEATSET_DIA, HEATSET_DEPTH,
     KNOB_OD, KNOB_HEIGHT,
     KNOB_Z_BOTTOM, KNOB_Z_TOP, POST_TIP_Z,
-    WASHER_OD,
+    WASHER_OD, WASHER_ID, WASHER_H,
 )
 
 TOL = 0.15  # mm — geometric tolerance for bounding box checks
@@ -41,6 +41,10 @@ def body():
 def knob():
     return build_handle_knob()
 
+@pytest.fixture(scope="module")
+def washer():
+    return build_retaining_washer()
+
 
 # ─── Build Smoke Tests ───────────────────────────────
 
@@ -56,15 +60,14 @@ def test_knob_builds(knob):
     assert knob is not None
     assert knob.volume > 0
 
+def test_washer_builds(washer):
+    assert washer is not None
+    assert washer.volume > 0
+
 def test_ghost_bolt_builds():
     bolt = build_ghost_bolt()
     assert bolt is not None
     assert bolt.volume > 0
-
-def test_ghost_washer_builds():
-    w = build_ghost_washer()
-    assert w is not None
-    assert w.volume > 0
 
 def test_ghost_heatset_builds():
     hs = build_ghost_heatset()
@@ -109,7 +112,7 @@ def test_body_bounding_box(body):
     # Y should be max of socket width or arm width
     expected_y = max(SOCKET_SHORT, ARM_WIDTH)
     assert abs(y_size - expected_y) < TOL, f"Body Y={y_size}, expected {expected_y}"
-    # Z: from z=0 (pocket bottom) to ARM_Z_TOP (arm top, no post)
+    # Z: from z=0 (pocket bottom) to ARM_Z_TOP (arm top)
     expected_z = ARM_Z_TOP
     assert abs(z_size - expected_z) < TOL, f"Body Z={z_size}, expected {expected_z}"
 
@@ -125,7 +128,12 @@ def test_arm_at_top(body):
     """Arm must be at the top of the socket (usage orientation)."""
     bb = body.bounding_box()
     assert abs(bb.max.Z - ARM_Z_TOP) < TOL
-    assert ARM_Z_BOTTOM > SOCKET_HEIGHT / 2, "Arm should be in upper half of socket"
+
+def test_arm_clearance_from_peg():
+    """Arm must be far enough from peg slot to clear adjacent tuning pegs."""
+    # Distance from slot top (z=0) to arm bottom
+    clearance = ARM_Z_BOTTOM
+    assert clearance >= 20.0, f"Arm-to-peg clearance={clearance}mm, need >=20mm"
 
 def test_arm_extends_past_bore(body):
     """Arm must extend past the bearing bore for structural integrity."""
@@ -143,7 +151,6 @@ def test_knob_bounding_box(knob):
     z_size = bb.max.Z - bb.min.Z
     assert abs(x_size - KNOB_OD) < TOL, f"Knob X={x_size}, expected {KNOB_OD}"
     assert abs(y_size - KNOB_OD) < TOL, f"Knob Y={y_size}, expected {KNOB_OD}"
-    # Z: barrel (30) + flange (2) + post (8.3) = 40.3
     expected_z = KNOB_HEIGHT + FLANGE_HEIGHT + POST_HEIGHT
     assert abs(z_size - expected_z) < TOL, f"Knob Z={z_size}, expected {expected_z}"
 
@@ -156,6 +163,21 @@ def test_knob_volume_reasonable(knob):
     full_cyl = math.pi * (KNOB_OD / 2) ** 2 * (KNOB_HEIGHT + FLANGE_HEIGHT + POST_HEIGHT)
     assert knob.volume < full_cyl
     assert knob.volume > full_cyl * 0.2  # not too hollow
+
+
+# ─── Retaining Washer Dimensions ─────────────────────
+
+def test_washer_bounding_box(washer):
+    bb = washer.bounding_box()
+    x_size = bb.max.X - bb.min.X
+    y_size = bb.max.Y - bb.min.Y
+    z_size = bb.max.Z - bb.min.Z
+    assert abs(x_size - WASHER_OD) < TOL, f"Washer X={x_size}, expected {WASHER_OD}"
+    assert abs(y_size - WASHER_OD) < TOL, f"Washer Y={y_size}, expected {WASHER_OD}"
+    assert abs(z_size - WASHER_H) < TOL, f"Washer Z={z_size}, expected {WASHER_H}"
+
+def test_washer_is_solid(washer):
+    assert len(washer.solids()) == 1
 
 
 # ─── Fit & Interface Checks ──────────────────────────
@@ -177,8 +199,12 @@ def test_flange_wider_than_bore():
     assert FLANGE_DIA > ARM_BORE_DIA
 
 def test_washer_wider_than_bore():
-    """Washer must be wider than arm bore for axial retention."""
+    """Printed washer must be wider than arm bore for axial retention."""
     assert WASHER_OD > ARM_BORE_DIA
+
+def test_washer_bolt_clearance():
+    """Washer bore must clear M3 bolt shaft."""
+    assert WASHER_ID >= 3.0
 
 def test_post_longer_than_arm():
     """Post must protrude below arm for washer clearance."""
@@ -207,6 +233,11 @@ def test_post_wall_around_heatset():
     """Post wall around heat-set must be at least 1.5mm."""
     wall = (POST_OD - HEATSET_DIA) / 2
     assert wall >= 1.5, f"Post wall={wall}, need >=1.5mm"
+
+def test_washer_wall_minimum():
+    """Washer wall around M3 bore must provide strength."""
+    wall = (WASHER_OD - WASHER_ID) / 2
+    assert wall >= 3.0, f"Washer wall={wall}, need >=3.0mm"
 
 
 # ─── Printability (No Supports) ──────────────────────
@@ -244,7 +275,7 @@ def test_stadium_derivation():
     assert abs(SOCKET_LONG - (TPU_LONG + 2 * SOCKET_WALL)) < 0.01
 
 def test_socket_height_derivation():
-    assert abs(SOCKET_HEIGHT - (POCKET_DEPTH + 5.0)) < 0.01
+    assert abs(SOCKET_HEIGHT - (POCKET_DEPTH + SOCKET_CAP)) < 0.01
     assert abs(POCKET_DEPTH - TPU_HEIGHT) < 0.01
 
 def test_z_position_derivations():

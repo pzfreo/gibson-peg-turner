@@ -1,22 +1,24 @@
 """
 Gibson Peg Turner — build123d CAD Model
 
-Generates STEP files for a 3-piece T-handle string winder:
+Generates STEP files for a 4-piece T-handle string winder:
   A) Socket body (PETG-CF)  — stadium shape + arm with through-bore bearing
   B) TPU insert (TPU 95A)   — stadium plug with peg-engagement slot
   C) Handle knob (PETG-CF)  — barrel knob with integral bushing post
+  D) Retaining washer (PETG-CF) — printed washer, covers bore from below
 
 Modelled in usage orientation:
   - z=0 bottom: peg engagement (pocket opens here)
-  - z=25 top: solid cap, arm extends from here
+  - z=30 top: solid cap, arm extends from here
   - Knob sits on arm; post goes through arm bore
-  - Flange (top) + washer (bottom) retain knob axially
+  - Flange (top) + printed washer (bottom) retain knob axially
   - Knob+post+bolt+washer spin freely as a unit
 
 For printing:
   - Socket body: flip so arm is on the bed, pocket faces up
   - Knob: print barrel-down, post pointing up (no supports)
   - TPU insert: print upright, slot opening up
+  - Retaining washer: print flat
 """
 
 from build123d import *
@@ -40,7 +42,8 @@ TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 20.0 — total height (Z)
 SOCKET_WALL   = 2.65
 SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 15.3 — short axis (Y)
 SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 26.3 — long axis (X)
-SOCKET_HEIGHT = TPU_HEIGHT + 5.0               # 25.0 — total height (Z)
+SOCKET_CAP    = 10.0                           # solid cap above pocket (arm clearance)
+SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 30.0 — total height (Z)
 POCKET_DEPTH  = TPU_HEIGHT                     # 20.0
 POCKET_CHAMFER = 0.5
 
@@ -69,21 +72,23 @@ KNOB_OD       = 20.0
 KNOB_HEIGHT   = 30.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
-# ─── M3 Bolt + Washer (ghost) ────────────────────────
+# ─── Printed Retaining Washer (PETG-CF) ──────────────
+WASHER_OD = 12.0    # must be > ARM_BORE_DIA (8.4mm) — covers bore
+WASHER_ID = 3.2     # M3 bolt clearance
+WASHER_H  = 2.0     # thick enough for PETG-CF strength
+
+# ─── M3 Bolt (ghost) ─────────────────────────────────
 M3_SHAFT_DIA  = 3.0
 M3_SHAFT_LEN  = 8.0     # only needs to reach heat-set
 M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
-WASHER_OD     = 9.0     # M3 fender washer (must be > ARM_BORE_DIA)
-WASHER_ID     = 3.2
-WASHER_H      = 0.5
 
 # ─── Derived Z positions (usage orientation) ──────────
-ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 17.0
-ARM_Z_TOP     = SOCKET_HEIGHT                  # 25.0
-KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 27.0
-KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 57.0
-POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 16.7 (0.3mm below arm)
+ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 22.0
+ARM_Z_TOP     = SOCKET_HEIGHT                  # 30.0
+KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 32.0
+KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 62.0
+POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 21.7 (0.3mm below arm)
 
 
 # ═══════════════════════════════════════════════════════
@@ -128,9 +133,9 @@ def build_tpu_insert() -> Part:
 def build_socket_body() -> Part:
     """Stadium body + T-handle arm with through-bore bearing.
 
-    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=17-25).
-    Arm has a through-bore for the knob's bushing post. The knob is
-    retained axially by its flange (top) and a washer+bolt (bottom).
+    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=22-30).
+    Socket cap raised to 10mm to keep arm clear of adjacent tuning pegs.
+    Arm has a through-bore for the knob's bushing post.
 
     For printing: flip so arm is on the bed and pocket faces up.
     """
@@ -223,6 +228,28 @@ def build_handle_knob() -> Part:
 
 
 # ═══════════════════════════════════════════════════════
+#  Component D — Printed Retaining Washer
+# ═══════════════════════════════════════════════════════
+
+def build_retaining_washer() -> Part:
+    """Printed PETG-CF washer — covers arm bore from below.
+
+    12mm OD × 2mm thick, 3.2mm M3 bore. Print flat. No supports.
+    """
+    with BuildPart() as bp:
+        Cylinder(
+            WASHER_OD / 2, WASHER_H,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        Cylinder(
+            WASHER_ID / 2, WASHER_H,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+            mode=Mode.SUBTRACT,
+        )
+    return bp.part
+
+
+# ═══════════════════════════════════════════════════════
 #  Ghost Hardware (for assembly visualization only)
 # ═══════════════════════════════════════════════════════
 
@@ -239,21 +266,6 @@ def build_ghost_bolt() -> Part:
         with BuildSketch(Plane.XY.offset(M3_HEAD_H)):
             Circle(M3_SHAFT_DIA / 2)
         extrude(amount=M3_SHAFT_LEN)
-    return bp.part
-
-
-def build_ghost_washer() -> Part:
-    """M3 fender washer — ghost visualization."""
-    with BuildPart() as bp:
-        Cylinder(
-            WASHER_OD / 2, WASHER_H,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-        )
-        Cylinder(
-            WASHER_ID / 2, WASHER_H,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-            mode=Mode.SUBTRACT,
-        )
     return bp.part
 
 
@@ -281,14 +293,15 @@ if __name__ == "__main__":
     tpu     = build_tpu_insert()
     body    = build_socket_body()
     knob    = build_handle_knob()
+    washer  = build_retaining_washer()
     bolt    = build_ghost_bolt()
-    washer  = build_ghost_washer()
     heatset = build_ghost_heatset()
 
     # Export individual STEP files (for slicing)
     export_step(tpu, str(OUT / "tpu_insert.step"))
     export_step(body, str(OUT / "socket_body.step"))
     export_step(knob, str(OUT / "handle_knob.step"))
+    export_step(washer, str(OUT / "retaining_washer.step"))
 
     # ── Assembly: position parts in usage orientation ──
     # TPU insert drops into pocket from z=0
@@ -305,16 +318,16 @@ if __name__ == "__main__":
     knob_asm.label = "Handle Knob"
     knob_asm.color = Color("silver")
 
+    # Printed washer — sits on post tip below arm
+    washer_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z - WASHER_H) * washer
+    washer_asm.label = "Retaining Washer"
+    washer_asm.color = Color("forestgreen")
+
     # Ghost bolt — head below washer, shaft goes up into post heat-set
     bolt_z = POST_TIP_Z - WASHER_H - M3_HEAD_H
     bolt_asm = Pos(ARM_LENGTH, 0, bolt_z) * bolt
     bolt_asm.label = "M3 Bolt"
     bolt_asm.color = Color("gold")
-
-    # Ghost washer — between bolt head and post tip
-    washer_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z - WASHER_H) * washer
-    washer_asm.label = "M3 Washer"
-    washer_asm.color = Color("gold")
 
     # Ghost heat-set — in knob post tip
     heatset_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z) * heatset
@@ -323,24 +336,25 @@ if __name__ == "__main__":
 
     assembly = Compound(
         label="Peg Turner Assembly",
-        children=[body, tpu_asm, knob_asm, bolt_asm, washer_asm, heatset_asm],
+        children=[body, tpu_asm, knob_asm, washer_asm, bolt_asm, heatset_asm],
     )
     export_step(assembly, str(OUT / "assembly.step"))
 
     print("Exported STEP files:")
-    for name in ["socket_body", "tpu_insert", "handle_knob", "assembly"]:
+    for name in ["socket_body", "tpu_insert", "handle_knob",
+                  "retaining_washer", "assembly"]:
         print(f"  {OUT / name}.step")
 
     # Show in OCP CAD Viewer (VSCode) if available — fail silently
     try:
         from ocp_vscode import show
         show(
-            body, tpu_asm, knob_asm, bolt_asm, washer_asm, heatset_asm,
+            body, tpu_asm, knob_asm, washer_asm, bolt_asm, heatset_asm,
             names=["Socket Body", "TPU Insert", "Handle Knob",
-                   "M3 Bolt", "M3 Washer", "Heat-set Insert"],
+                   "Retaining Washer", "M3 Bolt", "Heat-set Insert"],
             colors=["dimgray", "royalblue", "silver",
-                    "gold", "gold", "darkorange"],
-            alphas=[1.0, 0.8, 1.0, 0.4, 0.4, 0.4],
+                    "forestgreen", "gold", "darkorange"],
+            alphas=[1.0, 0.8, 1.0, 1.0, 0.4, 0.4],
         )
     except Exception:
         pass

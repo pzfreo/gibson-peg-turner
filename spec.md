@@ -7,19 +7,20 @@ A 3D-printed T-handle string winder for Gibson-style guitar tuning pegs. Designe
 ### Design Goals
 - Protect vintage/decorative peg heads from scratches and damage
 - Fast, comfortable string winding via offset T-handle crank
-- Simple 3-piece assembly from two materials (PETG-CF + TPU)
+- Simple 4-piece assembly from two materials (PETG-CF + TPU)
 - No supports required for any print
 
 ### Assembly
-Three printed parts plus hardware:
+Four printed parts plus hardware:
 
 | # | Part | Material | Function |
 |---|------|----------|----------|
 | A | Socket body | PETG-CF | Structural frame: holds TPU insert, integrates T-handle arm with bushing pocket |
 | B | TPU insert | TPU 95A | Drops into socket body (exact fit); slot engages peg head with cushioned grip |
 | C | Handle knob | PETG-CF | Palm grip with integral bushing post; sits on arm, spins freely |
+| D | Retaining washer | PETG-CF | Bears on knob post tip from below; retained by M3 bolt |
 
-Hardware: 1× M3×8 pan head bolt, 1× M3 fender washer (9mm OD), 1× M3 heat-set insert (knob retention from arm underside).
+Hardware: 1× M3×8 pan head bolt, 1× M3 heat-set insert (knob retention from arm underside).
 
 ---
 
@@ -116,7 +117,7 @@ The stadium shape is a rectangle of (long − short) length with semicircular ca
 |-----------|-------|------------|
 | Socket short axis (OD) | 15.3mm | Pocket (10.0mm) + 2 × 2.65mm wall |
 | Socket long axis (OD) | 26.3mm | Pocket (21.0mm) + 2 × 2.65mm wall |
-| Socket height | 25.0mm | Pocket depth (20mm) + 5mm top cap |
+| Socket height | 30.0mm | Pocket depth (20mm) + 10mm top cap |
 | Wall thickness | 2.65mm | Minimum for PETG-CF structural integrity |
 
 ### T-Handle Arm
@@ -129,9 +130,10 @@ The arm extends from the **top** of the socket, flowing out of one end of the st
 | Arm height | 8.0mm | Through-bore design — no floor needed |
 | Junction | Blend/tangent | Arm blends into the semicircular end of the stadium |
 | Junction fillet | 5.0mm | Stress relief at arm-to-socket junction |
+| Arm z-position | z=22–30mm | Socket cap is 10mm; arm sits at top 8mm of socket height |
 
 ### Bushing Bore (in arm, at arm end)
-The arm has a **through-bore** at its far end. The knob's integral bushing post passes through the full 8mm arm height and protrudes 0.3mm below the arm underside for washer clearance. A fender washer and bolt from below bear on the post tip, retaining the knob axially without clamping the arm.
+The arm has a **through-bore** at its far end. The knob's integral bushing post passes through the full 8mm arm height and protrudes 0.3mm below the arm underside for washer clearance. A printed retaining washer and bolt from below bear on the post tip, retaining the knob axially without clamping the arm.
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
@@ -173,7 +175,7 @@ The pip (2.1mm dia, 1.4mm total protrusion) sits on the ring edge. The slot widt
 ## 5. Component C — Handle Knob (PETG-CF)
 
 ### Overall Shape
-Barrel-shaped palm knob with an **integral bushing post** that passes through the arm's through-bore. The knob sits above the arm via a flange (wider than the bore), and is retained axially by an M3 fender washer and bolt bearing on the protruding post tip from below. The knob, post, bolt, and washer all rotate together as a unit inside the fixed arm bore.
+Barrel-shaped palm knob with an **integral bushing post** that passes through the arm's through-bore. The knob sits above the arm via a flange (wider than the bore), and is retained axially by a printed retaining washer and bolt bearing on the protruding post tip from below. The knob, post, bolt, and washer all rotate together as a unit inside the fixed arm bore.
 
 ### Barrel Dimensions
 | Parameter | Value | Notes |
@@ -193,7 +195,7 @@ Barrel-shaped palm knob with an **integral bushing post** that passes through th
 ### Axial Retention
 The knob is captured between two features wider than the 8.4mm bore:
 - **Top**: integral flange (10mm OD) bears on the arm top face
-- **Bottom**: M3 fender washer (9mm OD) bears on the post tip (0.3mm protrusion)
+- **Bottom**: printed retaining washer (12mm OD) bears on the post tip (0.3mm protrusion)
 
 The bolt pulls the washer up against the post tip. No clamping load passes through the arm — the arm is a free bearing surface only.
 
@@ -206,15 +208,45 @@ The bolt pulls the washer up against the post tip. No clamping load passes throu
 
 ---
 
+## 5.5. Component D — Retaining Washer (PETG-CF)
+
+### Overall Shape
+Flat circular washer printed in PETG-CF. Replaces the M3 fender washer. Bears on the knob post tip from below and is retained by the M3 bolt. Printed flat on the bed — no supports required.
+
+### Dimensions
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Outer diameter (OD) | 12.0mm | Covers 8.4mm bore with 1.8mm margin per side |
+| Inner diameter (ID) | 3.2mm | M3 bolt clearance (M3 = 3.0mm) |
+| Height | 2.0mm | Sufficient thickness in PETG-CF for bearing load |
+
+### Function
+- OD (12mm) is larger than arm bore (8.4mm) — cannot pull through; bears on post tip
+- ID (3.2mm) passes M3 bolt shank; bolt head bears on washer face from below
+- PETG-CF provides adequate compressive strength for the low axial load of knob retention
+- Eliminates need for a purchased fender washer
+
+### Print Parameters
+| Parameter | Value |
+|-----------|-------|
+| Material | PETG-CF |
+| Orientation | Flat (face down on bed) |
+| Supports | None required |
+| Perimeters | 4 |
+| Infill | 100% |
+| Layer height | 0.2mm |
+
+---
+
 ## 6. Assembly & Interfaces
 
 ### Assembly Sequence
 1. Drop TPU insert into socket body pocket (exact fit, no interference)
 2. Insert knob post down through arm through-bore from above (clearance fit)
-3. Place M3 fender washer (9mm OD) on post tip below the arm
+3. Place printed retaining washer (12mm OD) on post tip below the arm
 4. Thread M3×8 bolt up through washer into heat-set insert in post tip — snug, not overtorqued
 
-The knob's flange (10mm OD) rests on the arm top, preventing the knob from pulling down through the bore. The washer + bolt bear on the post tip (0.3mm protrusion) from below, preventing the knob from lifting out. No clamping force acts on the arm.
+The knob's flange (10mm OD) rests on the arm top, preventing the knob from pulling down through the bore. The printed washer + bolt bear on the post tip (0.3mm protrusion) from below, preventing the knob from lifting out. No clamping force acts on the arm.
 
 ### Interface Tolerances
 
@@ -222,16 +254,16 @@ The knob's flange (10mm OD) rests on the arm top, preventing the knob from pulli
 |-----------|------|----------------------|
 | TPU insert → Socket pocket | Exact fit | 0mm — TPU insert matches pocket exactly |
 | Knob post → Arm bore | Running fit (clearance) | 0.4mm clearance on diameter |
-| Fender washer → Post tip | Bearing contact | Washer OD (9mm) > bore (8.4mm); bears on post tip only |
+| Retaining washer → Post tip | Bearing contact | Washer OD (12mm) > bore (8.4mm); bears on post tip only |
 | M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set (4.5mm deep, ~4.0mm pocket dia) |
 
 ### Bill of Materials
 
 | Item | Qty | Specification |
 |------|-----|---------------|
-| M3 × 8mm pan head bolt | 1 | Stainless steel (shorter — no arm floor to pass through) |
-| M3 fender washer | 1 | OD 9mm (must exceed 8.4mm bore) |
+| M3 × 8mm pan head bolt | 1 | Stainless steel |
 | M3 × 4mm heat-set insert | 1 | Standard brass, knurled |
+| Retaining washer (Component D) | 1 | Printed PETG-CF, 12mm OD × 3.2mm ID × 2mm tall |
 
 ---
 
@@ -268,6 +300,16 @@ The knob's flange (10mm OD) rests on the arm top, preventing the knob from pulli
 | Infill | 20% gyroid |
 | Notes | Non-structural, light infill sufficient |
 
+### Retaining Washer (PETG-CF)
+| Parameter | Value |
+|-----------|-------|
+| Material | PETG-CF |
+| Nozzle | 0.4mm (hardened steel) |
+| Layer height | 0.2mm |
+| Perimeters | 4 |
+| Infill | 100% |
+| Notes | 100% infill for compressive strength at bearing face |
+
 ---
 
 ## 8. Print Orientation
@@ -283,12 +325,15 @@ Print **upright** with the slot opening facing **up**. The stadium outer wall ne
 ### Handle Knob
 Print **barrel-down** (flat bottom on bed), bushing post pointing **up**. The barrel is a simple cylinder with fillets. The flange (10mm) is narrower than the barrel (20mm), so it prints fine. The post (8mm OD, 8.3mm tall) is narrower than the flange (10mm) — only 1mm overhang per side, printable without supports. The heat-set pocket in the post tip faces up during printing.
 
+### Retaining Washer
+Print **flat on the bed** (washer face down). A 2mm tall, 12mm diameter ring is trivial to print in this orientation — no overhangs, no supports. The ID hole (3.2mm) is a simple vertical bore.
+
 ---
 
 ## 9. Output & Tooling
 
 ### Implementation
-Single Python file (`peg_turner.py`) using **build123d** to generate all three components.
+Single Python file (`peg_turner.py`) using **build123d** to generate all four components.
 
 ### Output Format
 - Individual **STEP** files for each component (for slicing/printing)
@@ -300,7 +345,8 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 | `socket_body.step` | Component A — Socket body (PETG-CF) |
 | `tpu_insert.step` | Component B — TPU insert |
 | `handle_knob.step` | Component C — Handle knob (PETG-CF) |
-| `assembly.step` | All three components in assembled position |
+| `retaining_washer.step` | Component D — Retaining washer (PETG-CF) |
+| `assembly.step` | All four components in assembled position |
 
 ---
 
@@ -312,11 +358,12 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] TPU insert drops into socket body and stays put under cranking torque
 - [ ] Knob post spins freely in arm through-bore (no binding)
 - [ ] Knob, post, bolt, and washer all rotate together as a unit (no relative slip)
-- [ ] M3 fender washer (9mm OD) bears on post tip, not on arm underside
+- [ ] Printed retaining washer (12mm OD) bears on post tip, not on arm underside
 - [ ] M3×8 bolt + heat-set insert retains knob securely — no axial play
 - [ ] Flange (10mm OD) sits on arm top, preventing knob from pulling through bore
 - [ ] T-handle arm does not flex noticeably under normal cranking force
 - [ ] Pip does not tear or permanently deform the TPU slot
+- [ ] Arm clears adjacent tuning pegs on headstock (22mm gap from peg engagement end to arm z=22mm)
 
 ### Dimensional Checks
 - [ ] TPU slot width accommodates ring (2.4mm) + pip (2.1mm protrusion) via flex
@@ -324,10 +371,12 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] Engagement depth (17mm) provides stable, wobble-free drive
 - [ ] Knob post clearance (0.4mm on dia) allows free rotation without excessive play
 - [ ] Post protrusion below arm (0.3mm) provides clearance for washer without excess slop
-- [ ] Fender washer OD (9mm) confirmed larger than bore (8.4mm) — cannot pull through
+- [ ] Retaining washer OD (12mm) confirmed larger than bore (8.4mm) — cannot pull through
+- [ ] Retaining washer ID (3.2mm) confirmed larger than M3 bolt shank (3.0mm) — bolt passes freely
 - [ ] Flange OD (10mm) confirmed larger than bore (8.4mm) — cannot pull through
 - [ ] Socket body wall thickness adequate (no cracking under torque)
 - [ ] Arm height (8.0mm) adequate bearing length for post rotation
+- [ ] Socket cap height (10mm) confirmed; arm at z=22–30mm from peg engagement end
 
 ### Usability
 - [ ] Comfortable single-hand operation
