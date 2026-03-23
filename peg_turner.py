@@ -49,23 +49,23 @@ POCKET_CHAMFER = 0.5
 
 # ─── T-Handle Arm ─────────────────────────────────────
 ARM_LENGTH = 23.0    # socket center → bushing center (X)
-ARM_WIDTH  = 12.0    # Y — horizontal on bed
+ARM_WIDTH  = 16.0    # Y — horizontal on bed
 ARM_HEIGHT = 8.0     # Z — through-bore, no floor needed
 ARM_RADIUS = 2.0     # corner rounding
 ARM_FILLET = 5.0     # junction stress-relief fillet
 
 # ─── Arm Bearing Bore (through-hole for knob post) ───
-ARM_BORE_DIA = 8.4   # POST_OD + 0.4mm clearance
+ARM_BORE_DIA = 10.4   # POST_OD + 0.4mm clearance
 
 # ─── Knob Bushing Post (integral with knob) ──────────
-POST_OD       = 8.0    # bearing surface
+POST_OD       = 10.0   # bearing surface
 POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
-FLANGE_DIA    = 12.0   # wider than bore, sits on arm top
+FLANGE_DIA    = 14.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
-HEATSET_DIA   = 4.0
-HEATSET_DEPTH = 4.5
+HEATSET_DIA   = 5.0
+HEATSET_DEPTH = 6.0    # deep enough for 8mm bolt (minus washer + gap)
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 16.0
@@ -73,7 +73,7 @@ KNOB_HEIGHT   = 30.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
 # ─── Printed Retaining Washer (PETG-CF) ──────────────
-WASHER_OD = 12.0    # must be > ARM_BORE_DIA (8.4mm) — covers bore
+WASHER_OD = 14.0    # must be > ARM_BORE_DIA (10.4mm) — covers bore
 WASHER_ID = 3.2     # M3 bolt clearance
 WASHER_H  = 2.0     # thick enough for PETG-CF strength
 
