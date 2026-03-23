@@ -33,22 +33,22 @@ SLOT_DEPTH   = 17.0     # Z — full peg engagement depth
 SLOT_CHAMFER = 1.0      # 45° entry chamfer
 
 # ─── TPU Insert ───────────────────────────────────────
-TPU_WALL   = 3.0
-TPU_SHORT  = SLOT_WIDTH  + 2 * TPU_WALL   # 10.0 — short axis (Y)
-TPU_LONG   = SLOT_LENGTH + 2 * TPU_WALL   # 21.0 — long axis (X)
-TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 20.0 — total height (Z)
+TPU_WALL   = 2.0
+TPU_SHORT  = SLOT_WIDTH  + 2 * TPU_WALL   # 8.0 — short axis (Y)
+TPU_LONG   = SLOT_LENGTH + 2 * TPU_WALL   # 19.0 — long axis (X)
+TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 19.0 — total height (Z)
 
 # ─── Socket Body ──────────────────────────────────────
 SOCKET_WALL   = 2.65
-SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 15.3 — short axis (Y)
-SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 26.3 — long axis (X)
+SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 13.3 — short axis (Y)
+SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 24.3 — long axis (X)
 SOCKET_CAP    = 10.0                           # solid cap above pocket (arm clearance)
-SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 30.0 — total height (Z)
-POCKET_DEPTH  = TPU_HEIGHT                     # 20.0
+SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 29.0 — total height (Z)
+POCKET_DEPTH  = TPU_HEIGHT                     # 19.0
 POCKET_CHAMFER = 0.5
 
 # ─── T-Handle Arm ─────────────────────────────────────
-ARM_LENGTH = 35.0    # socket center → bushing center (X)
+ARM_LENGTH = 15.0    # socket center → bushing center (X)
 ARM_WIDTH  = 12.0    # Y — horizontal on bed
 ARM_HEIGHT = 8.0     # Z — through-bore, no floor needed
 ARM_RADIUS = 2.0     # corner rounding
@@ -84,11 +84,11 @@ M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
 
 # ─── Derived Z positions (usage orientation) ──────────
-ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 22.0
-ARM_Z_TOP     = SOCKET_HEIGHT                  # 30.0
-KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 32.0
-KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 62.0
-POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 21.7 (0.3mm below arm)
+ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 21.0
+ARM_Z_TOP     = SOCKET_HEIGHT                  # 29.0
+KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 31.0
+KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 61.0
+POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 20.7 (0.3mm below arm)
 
 
 # ═══════════════════════════════════════════════════════
