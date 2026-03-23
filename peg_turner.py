@@ -156,6 +156,19 @@ def build_socket_body() -> Part:
                 RectangleRounded(arm_total_len, ARM_WIDTH, ARM_RADIUS)
         extrude(amount=ARM_HEIGHT)
 
+        # Fillet arm-to-socket junction for smooth blend
+        # Select edges at arm bottom Z that lie within the socket footprint
+        socket_half_x = SOCKET_LONG / 2
+        socket_half_y = SOCKET_SHORT / 2
+        junction_edges = [
+            e for e in bp.edges()
+            if abs(e.center().Z - ARM_Z_BOTTOM) < 0.5
+            and abs(e.center().X) < socket_half_x
+            and abs(e.center().Y) < socket_half_y
+        ]
+        if junction_edges:
+            fillet(junction_edges, ARM_FILLET)
+
         # TPU pocket — stadium bore from bottom (z=0 upward)
         with BuildSketch(Plane.XY):
             SlotOverall(TPU_LONG, TPU_SHORT)
