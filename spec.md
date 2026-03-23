@@ -19,7 +19,7 @@ Three printed parts plus hardware:
 | B | TPU insert | TPU 95A | Drops into socket body (exact fit); slot engages peg head with cushioned grip |
 | C | Handle knob | PETG-CF | Palm grip with integral bushing post; sits on arm, spins freely |
 
-Hardware: 1× M3×12 pan head bolt, 1× M3 washer (knob retention from arm underside).
+Hardware: 1× M3×8 pan head bolt, 1× M3 fender washer (9mm OD), 1× M3 heat-set insert (knob retention from arm underside).
 
 ---
 
@@ -125,21 +125,20 @@ The arm extends from the **top** of the socket, flowing out of one end of the st
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Arm length | 35.0mm | Center of socket to center of knob bushing |
-| Arm cross-section | 12mm × 12mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 12mm tall (vertical). |
-| Arm height | 12.0mm | Increased to accommodate 10mm bushing pocket + 2mm floor |
+| Arm cross-section | 12mm × 8mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 8mm tall (vertical). |
+| Arm height | 8.0mm | Through-bore design — no floor needed |
 | Junction | Blend/tangent | Arm blends into the semicircular end of the stadium |
 | Junction fillet | 5.0mm | Stress relief at arm-to-socket junction |
 
-### Bushing Pocket (in arm, at arm end)
-The arm has a **blind pocket** at its far end that receives the knob's integral bushing post. A bolt from the arm underside threads into a heat-set insert in the knob's post tip.
+### Bushing Bore (in arm, at arm end)
+The arm has a **through-bore** at its far end. The knob's integral bushing post passes through the full 8mm arm height and protrudes 0.3mm below the arm underside for washer clearance. A fender washer and bolt from below bear on the post tip, retaining the knob axially without clamping the arm.
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Pocket diameter | 8.4mm | POST_OD (8.0mm) + 0.4mm clearance |
-| Pocket depth | 10.0mm | Bearing surface for knob post |
-| Floor thickness | 2.0mm | ARM_HEIGHT − pocket depth |
-| Bolt clearance hole | 3.4mm dia | M3 clearance through arm floor |
-| Washer recess | 6.5mm dia × 1.0mm | On arm underside, flush bolt head |
+| Bore diameter | 8.4mm | POST_OD (8.0mm) + 0.4mm clearance |
+| Bore type | Through-bore | Full 8.0mm arm height — no floor |
+| Post protrusion below arm | 0.3mm | Washer + bolt bear on post tip, not on arm face |
+| Bolt clearance | n/a | Bolt threads directly into heat-set insert in post tip |
 
 ---
 
@@ -174,7 +173,7 @@ The pip (2.1mm dia, 1.4mm total protrusion) sits on the ring edge. The slot widt
 ## 5. Component C — Handle Knob (PETG-CF)
 
 ### Overall Shape
-Barrel-shaped palm knob with an **integral bushing post** that descends into the arm's pocket. The knob sits on the arm via a flange (wider than the pocket), and is retained by an M3 bolt from below.
+Barrel-shaped palm knob with an **integral bushing post** that passes through the arm's through-bore. The knob sits above the arm via a flange (wider than the bore), and is retained axially by an M3 fender washer and bolt bearing on the protruding post tip from below. The knob, post, bolt, and washer all rotate together as a unit inside the fixed arm bore.
 
 ### Barrel Dimensions
 | Parameter | Value | Notes |
@@ -186,17 +185,24 @@ Barrel-shaped palm knob with an **integral bushing post** that descends into the
 ### Integral Bushing Post
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Post OD | 8.0mm | Bearing surface, rides in arm pocket |
-| Post height | 10.0mm | Fills arm pocket (10mm bearing length) |
-| Flange diameter | 10.0mm | Wider than 8.4mm pocket — acts as shoulder |
+| Post OD | 8.0mm | Bearing surface, rotates inside arm bore (8.4mm) |
+| Post height | 8.3mm | ARM_HEIGHT (8.0mm) + 0.3mm protrusion below arm |
+| Flange diameter | 10.0mm | Wider than 8.4mm bore — bears on arm top, axial retention |
 | Flange height | 2.0mm | Ring between barrel and post |
+
+### Axial Retention
+The knob is captured between two features wider than the 8.4mm bore:
+- **Top**: integral flange (10mm OD) bears on the arm top face
+- **Bottom**: M3 fender washer (9mm OD) bears on the post tip (0.3mm protrusion)
+
+The bolt pulls the washer up against the post tip. No clamping load passes through the arm — the arm is a free bearing surface only.
 
 ### Heat-set Insert (in post tip)
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Heat-set pocket diameter | 4.0mm | Standard M3 brass insert |
 | Heat-set pocket depth | 4.5mm | Full insert engagement |
-| Location | Post tip (bottom) | Bolt from arm underside threads into this |
+| Location | Post tip (bottom face) | M3×8 bolt from below threads into this |
 
 ---
 
@@ -204,26 +210,27 @@ Barrel-shaped palm knob with an **integral bushing post** that descends into the
 
 ### Assembly Sequence
 1. Drop TPU insert into socket body pocket (exact fit, no interference)
-2. Insert knob post into arm pocket from above (clearance fit)
-3. Insert M3×12 bolt from arm underside, through arm floor, thread into heat-set insert in knob post tip
+2. Insert knob post down through arm through-bore from above (clearance fit)
+3. Place M3 fender washer (9mm OD) on post tip below the arm
+4. Thread M3×8 bolt up through washer into heat-set insert in post tip — snug, not overtorqued
 
-The knob's flange rests on the arm top, preventing the knob from dropping into the pocket. The bolt retains the knob from below.
+The knob's flange (10mm OD) rests on the arm top, preventing the knob from pulling down through the bore. The washer + bolt bear on the post tip (0.3mm protrusion) from below, preventing the knob from lifting out. No clamping force acts on the arm.
 
 ### Interface Tolerances
 
 | Interface | Type | Clearance/Interference |
 |-----------|------|----------------------|
 | TPU insert → Socket pocket | Exact fit | 0mm — TPU insert matches pocket exactly |
-| Knob post → Arm pocket | Running fit (clearance) | 0.4mm clearance on diameter |
-| M3 bolt → Arm floor bore | Clearance | 0.4mm clearance on diameter |
+| Knob post → Arm bore | Running fit (clearance) | 0.4mm clearance on diameter |
+| Fender washer → Post tip | Bearing contact | Washer OD (9mm) > bore (8.4mm); bears on post tip only |
 | M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set (4.5mm deep, ~4.0mm pocket dia) |
 
 ### Bill of Materials
 
 | Item | Qty | Specification |
 |------|-----|---------------|
-| M3 × 12mm pan head bolt | 1 | Stainless steel |
-| M3 washer | 1 | OD ~5.5mm |
+| M3 × 8mm pan head bolt | 1 | Stainless steel (shorter — no arm floor to pass through) |
+| M3 fender washer | 1 | OD 9mm (must exceed 8.4mm bore) |
 | M3 × 4mm heat-set insert | 1 | Standard brass, knurled |
 
 ---
@@ -268,13 +275,13 @@ The knob's flange rests on the arm top, preventing the knob from dropping into t
 All parts must print **without supports**.
 
 ### Socket Body
-Print with the socket bore facing **up** (arm flat on the bed, 12mm wide face down). The arm lies flat, providing a stable base. The stadium-shaped socket rises vertically from the arm. No supports needed — the pocket bore is open at the top, the bushing pocket is a simple blind bore in the arm, and the stadium shape has no overhangs.
+Print with the socket bore facing **up** (arm flat on the bed, 8mm tall face down). The arm lies flat, providing a stable base. The stadium-shaped socket rises vertically from the arm. No supports needed — the pocket bore is open at the top, the bushing bore is a simple through-hole in the arm (easily bridged or printed as a clean bore with no overhang concern at 8.4mm), and the stadium shape has no overhangs.
 
 ### TPU Insert
 Print **upright** with the slot opening facing **up**. The stadium outer wall needs no supports. The slot is open-ended, so internal supports are not needed.
 
 ### Handle Knob
-Print **barrel-down** (flat bottom on bed), bushing post pointing **up**. The barrel is a simple cylinder with fillets. The flange (10mm) is narrower than the barrel (20mm), so it prints fine. The post (8mm) is narrower than the flange (10mm) — only 1mm overhang per side, printable without supports.
+Print **barrel-down** (flat bottom on bed), bushing post pointing **up**. The barrel is a simple cylinder with fillets. The flange (10mm) is narrower than the barrel (20mm), so it prints fine. The post (8mm OD, 8.3mm tall) is narrower than the flange (10mm) — only 1mm overhang per side, printable without supports. The heat-set pocket in the post tip faces up during printing.
 
 ---
 
@@ -303,9 +310,11 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] TPU slot slides over peg head without excessive force
 - [ ] TPU slot grips peg ring firmly (tool doesn't fall off when inverted)
 - [ ] TPU insert drops into socket body and stays put under cranking torque
-- [ ] Knob post spins freely in arm pocket (no binding)
-- [ ] M3 bolt + heat-set insert retains knob securely from below
-- [ ] Flange sits flush on arm top, preventing knob from dropping
+- [ ] Knob post spins freely in arm through-bore (no binding)
+- [ ] Knob, post, bolt, and washer all rotate together as a unit (no relative slip)
+- [ ] M3 fender washer (9mm OD) bears on post tip, not on arm underside
+- [ ] M3×8 bolt + heat-set insert retains knob securely — no axial play
+- [ ] Flange (10mm OD) sits on arm top, preventing knob from pulling through bore
 - [ ] T-handle arm does not flex noticeably under normal cranking force
 - [ ] Pip does not tear or permanently deform the TPU slot
 
@@ -313,9 +322,12 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] TPU slot width accommodates ring (2.4mm) + pip (2.1mm protrusion) via flex
 - [ ] TPU slot length clears ring OD (12.5mm) for easy entry
 - [ ] Engagement depth (17mm) provides stable, wobble-free drive
-- [ ] Knob post clearance allows free rotation without excessive play
+- [ ] Knob post clearance (0.4mm on dia) allows free rotation without excessive play
+- [ ] Post protrusion below arm (0.3mm) provides clearance for washer without excess slop
+- [ ] Fender washer OD (9mm) confirmed larger than bore (8.4mm) — cannot pull through
+- [ ] Flange OD (10mm) confirmed larger than bore (8.4mm) — cannot pull through
 - [ ] Socket body wall thickness adequate (no cracking under torque)
-- [ ] Arm floor (2mm) adequate for bolt retention
+- [ ] Arm height (8.0mm) adequate bearing length for post rotation
 
 ### Usability
 - [ ] Comfortable single-hand operation

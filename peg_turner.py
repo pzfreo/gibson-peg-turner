@@ -2,14 +2,16 @@
 Gibson Peg Turner — build123d CAD Model
 
 Generates STEP files for a 3-piece T-handle string winder:
-  A) Socket body (PETG-CF)  — stadium shape + arm with bushing pocket
+  A) Socket body (PETG-CF)  — stadium shape + arm with through-bore bearing
   B) TPU insert (TPU 95A)   — stadium plug with peg-engagement slot
   C) Handle knob (PETG-CF)  — barrel knob with integral bushing post
 
 Modelled in usage orientation:
   - z=0 bottom: peg engagement (pocket opens here)
   - z=25 top: solid cap, arm extends from here
-  - Knob sits on arm; integral post descends into arm pocket
+  - Knob sits on arm; post goes through arm bore
+  - Flange (top) + washer (bottom) retain knob axially
+  - Knob+post+bolt+washer spin freely as a unit
 
 For printing:
   - Socket body: flip so arm is on the bed, pocket faces up
@@ -45,24 +47,17 @@ POCKET_CHAMFER = 0.5
 # ─── T-Handle Arm ─────────────────────────────────────
 ARM_LENGTH = 35.0    # socket center → bushing center (X)
 ARM_WIDTH  = 12.0    # Y — horizontal on bed
-ARM_HEIGHT = 12.0    # Z — increased for bushing pocket + floor
+ARM_HEIGHT = 8.0     # Z — through-bore, no floor needed
 ARM_RADIUS = 2.0     # corner rounding
 ARM_FILLET = 5.0     # junction stress-relief fillet
 
-# ─── Bushing Pocket (in arm, receives knob post) ─────
-ARM_POCKET_DIA   = 8.4     # POST_OD + 0.4mm clearance
-ARM_POCKET_DEPTH = 10.0    # bearing surface depth
-ARM_FLOOR        = ARM_HEIGHT - ARM_POCKET_DEPTH  # 2.0mm
-
-# ─── Bolt Retention (from arm underside) ──────────────
-BOLT_CLEARANCE_DIA  = 3.4   # M3 clearance through arm floor
-WASHER_RECESS_DIA   = 6.5   # on arm underside
-WASHER_RECESS_DEPTH = 1.0
+# ─── Arm Bearing Bore (through-hole for knob post) ───
+ARM_BORE_DIA = 8.4   # POST_OD + 0.4mm clearance
 
 # ─── Knob Bushing Post (integral with knob) ──────────
-POST_OD      = 8.0     # bearing surface
-POST_HEIGHT  = 10.0    # fills arm pocket (10mm bearing)
-FLANGE_DIA   = 10.0    # wider than pocket, acts as shoulder
+POST_OD       = 8.0    # bearing surface
+POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
+FLANGE_DIA    = 10.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
@@ -74,18 +69,21 @@ KNOB_OD       = 20.0
 KNOB_HEIGHT   = 30.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
-# ─── M3 Bolt (ghost) ─────────────────────────────────
+# ─── M3 Bolt + Washer (ghost) ────────────────────────
 M3_SHAFT_DIA  = 3.0
-M3_SHAFT_LEN  = 12.0
+M3_SHAFT_LEN  = 8.0     # only needs to reach heat-set
 M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
+WASHER_OD     = 9.0     # M3 fender washer (must be > ARM_BORE_DIA)
+WASHER_ID     = 3.2
+WASHER_H      = 0.5
 
 # ─── Derived Z positions (usage orientation) ──────────
-ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 13.0
+ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 17.0
 ARM_Z_TOP     = SOCKET_HEIGHT                  # 25.0
 KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 27.0
 KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 57.0
-POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 15.0
+POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 16.7 (0.3mm below arm)
 
 
 # ═══════════════════════════════════════════════════════
@@ -128,11 +126,11 @@ def build_tpu_insert() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_socket_body() -> Part:
-    """Stadium body + T-handle arm with bushing pocket.
+    """Stadium body + T-handle arm with through-bore bearing.
 
-    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=13-25).
-    Arm has a blind pocket for the knob's integral post, with bolt
-    clearance through the floor and washer recess on the underside.
+    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=17-25).
+    Arm has a through-bore for the knob's bushing post. The knob is
+    retained axially by its flange (top) and a washer+bolt (bottom).
 
     For printing: flip so arm is on the bed and pocket faces up.
     """
@@ -171,23 +169,11 @@ def build_socket_body() -> Part:
         if pocket_edges:
             chamfer(pocket_edges, POCKET_CHAMFER)
 
-        # Bushing pocket — blind bore from arm top for knob post
-        with BuildSketch(Plane.XY.offset(ARM_Z_TOP)):
-            with Locations([(ARM_LENGTH, 0)]):
-                Circle(ARM_POCKET_DIA / 2)
-        extrude(amount=-ARM_POCKET_DEPTH, mode=Mode.SUBTRACT)
-
-        # M3 bolt clearance through arm floor (below bushing pocket)
+        # Through-bore for bushing post
         with BuildSketch(Plane.XY.offset(ARM_Z_BOTTOM)):
             with Locations([(ARM_LENGTH, 0)]):
-                Circle(BOLT_CLEARANCE_DIA / 2)
-        extrude(amount=ARM_FLOOR, mode=Mode.SUBTRACT)
-
-        # Washer recess on arm underside
-        with BuildSketch(Plane.XY.offset(ARM_Z_BOTTOM)):
-            with Locations([(ARM_LENGTH, 0)]):
-                Circle(WASHER_RECESS_DIA / 2)
-        extrude(amount=WASHER_RECESS_DEPTH, mode=Mode.SUBTRACT)
+                Circle(ARM_BORE_DIA / 2)
+        extrude(amount=ARM_HEIGHT, mode=Mode.SUBTRACT)
 
     return bp.part
 
@@ -217,7 +203,7 @@ def build_handle_knob() -> Part:
         circ_edges = bp.edges().filter_by(GeomType.CIRCLE)
         fillet(circ_edges, KNOB_EDGE_RAD)
 
-        # Flange below barrel (wider than pocket, acts as shoulder)
+        # Flange below barrel (wider than bore, acts as shoulder)
         with BuildSketch(Plane.XY):
             Circle(FLANGE_DIA / 2)
         extrude(amount=-FLANGE_HEIGHT)
@@ -241,10 +227,9 @@ def build_handle_knob() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_ghost_bolt() -> Part:
-    """M3×12 pan head bolt — ghost visualization.
+    """M3 pan head bolt — ghost visualization.
 
     Built with head at z=0 (bottom), shaft extending upward (+Z).
-    In assembly, positioned so shaft enters arm from below.
     """
     with BuildPart() as bp:
         Cylinder(
@@ -257,6 +242,21 @@ def build_ghost_bolt() -> Part:
     return bp.part
 
 
+def build_ghost_washer() -> Part:
+    """M3 fender washer — ghost visualization."""
+    with BuildPart() as bp:
+        Cylinder(
+            WASHER_OD / 2, WASHER_H,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        Cylinder(
+            WASHER_ID / 2, WASHER_H,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+            mode=Mode.SUBTRACT,
+        )
+    return bp.part
+
+
 def build_ghost_heatset() -> Part:
     """M3×4mm brass heat-set insert — ghost visualization."""
     with BuildPart() as bp:
@@ -264,7 +264,6 @@ def build_ghost_heatset() -> Part:
             HEATSET_DIA / 2, 4.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
-        # Hollow center
         Cylinder(
             M3_SHAFT_DIA / 2, 4.0,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -279,10 +278,11 @@ def build_ghost_heatset() -> Part:
 
 if __name__ == "__main__":
     print("Building components...")
-    tpu  = build_tpu_insert()
-    body = build_socket_body()
-    knob = build_handle_knob()
-    bolt = build_ghost_bolt()
+    tpu     = build_tpu_insert()
+    body    = build_socket_body()
+    knob    = build_handle_knob()
+    bolt    = build_ghost_bolt()
+    washer  = build_ghost_washer()
     heatset = build_ghost_heatset()
 
     # Export individual STEP files (for slicing)
@@ -305,10 +305,16 @@ if __name__ == "__main__":
     knob_asm.label = "Handle Knob"
     knob_asm.color = Color("silver")
 
-    # Ghost bolt — head below arm, shaft goes upward into post
-    bolt_asm = Pos(ARM_LENGTH, 0, ARM_Z_BOTTOM - M3_HEAD_H) * bolt
+    # Ghost bolt — head below washer, shaft goes up into post heat-set
+    bolt_z = POST_TIP_Z - WASHER_H - M3_HEAD_H
+    bolt_asm = Pos(ARM_LENGTH, 0, bolt_z) * bolt
     bolt_asm.label = "M3 Bolt"
     bolt_asm.color = Color("gold")
+
+    # Ghost washer — between bolt head and post tip
+    washer_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z - WASHER_H) * washer
+    washer_asm.label = "M3 Washer"
+    washer_asm.color = Color("gold")
 
     # Ghost heat-set — in knob post tip
     heatset_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z) * heatset
@@ -317,7 +323,7 @@ if __name__ == "__main__":
 
     assembly = Compound(
         label="Peg Turner Assembly",
-        children=[body, tpu_asm, knob_asm, bolt_asm, heatset_asm],
+        children=[body, tpu_asm, knob_asm, bolt_asm, washer_asm, heatset_asm],
     )
     export_step(assembly, str(OUT / "assembly.step"))
 
@@ -329,10 +335,12 @@ if __name__ == "__main__":
     try:
         from ocp_vscode import show
         show(
-            body, tpu_asm, knob_asm, bolt_asm, heatset_asm,
-            names=["Socket Body", "TPU Insert", "Handle Knob", "M3 Bolt", "Heat-set Insert"],
-            colors=["dimgray", "royalblue", "silver", "gold", "darkorange"],
-            alphas=[1.0, 0.8, 1.0, 0.4, 0.4],
+            body, tpu_asm, knob_asm, bolt_asm, washer_asm, heatset_asm,
+            names=["Socket Body", "TPU Insert", "Handle Knob",
+                   "M3 Bolt", "M3 Washer", "Heat-set Insert"],
+            colors=["dimgray", "royalblue", "silver",
+                    "gold", "gold", "darkorange"],
+            alphas=[1.0, 0.8, 1.0, 0.4, 0.4, 0.4],
         )
     except Exception:
         pass

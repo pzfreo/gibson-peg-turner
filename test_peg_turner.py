@@ -7,6 +7,7 @@ from peg_turner import (
     build_socket_body,
     build_handle_knob,
     build_ghost_bolt,
+    build_ghost_washer,
     build_ghost_heatset,
     # Parameters
     SLOT_WIDTH, SLOT_LENGTH, SLOT_DEPTH, SLOT_CHAMFER,
@@ -15,12 +16,12 @@ from peg_turner import (
     POCKET_DEPTH,
     ARM_LENGTH, ARM_WIDTH, ARM_HEIGHT,
     ARM_Z_BOTTOM, ARM_Z_TOP,
-    ARM_POCKET_DIA, ARM_POCKET_DEPTH, ARM_FLOOR,
-    BOLT_CLEARANCE_DIA, WASHER_RECESS_DIA, WASHER_RECESS_DEPTH,
+    ARM_BORE_DIA,
     POST_OD, POST_HEIGHT, FLANGE_DIA, FLANGE_HEIGHT,
     HEATSET_DIA, HEATSET_DEPTH,
     KNOB_OD, KNOB_HEIGHT,
     KNOB_Z_BOTTOM, KNOB_Z_TOP, POST_TIP_Z,
+    WASHER_OD,
 )
 
 TOL = 0.15  # mm — geometric tolerance for bounding box checks
@@ -60,6 +61,11 @@ def test_ghost_bolt_builds():
     assert bolt is not None
     assert bolt.volume > 0
 
+def test_ghost_washer_builds():
+    w = build_ghost_washer()
+    assert w is not None
+    assert w.volume > 0
+
 def test_ghost_heatset_builds():
     hs = build_ghost_heatset()
     assert hs is not None
@@ -85,7 +91,6 @@ def test_tpu_volume_reasonable(tpu):
     """Volume should be less than the full stadium block (slot removed)."""
     full_block = TPU_LONG * TPU_SHORT * TPU_HEIGHT  # overestimate (rect, not stadium)
     assert tpu.volume < full_block
-    # Slot removes at least SLOT_WIDTH * SLOT_LENGTH * SLOT_DEPTH
     slot_vol = SLOT_WIDTH * SLOT_LENGTH * SLOT_DEPTH
     assert tpu.volume < full_block - slot_vol * 0.5  # rough check
 
@@ -104,7 +109,7 @@ def test_body_bounding_box(body):
     # Y should be max of socket width or arm width
     expected_y = max(SOCKET_SHORT, ARM_WIDTH)
     assert abs(y_size - expected_y) < TOL, f"Body Y={y_size}, expected {expected_y}"
-    # Z: from z=0 (pocket bottom) to ARM_Z_TOP (no post above arm now)
+    # Z: from z=0 (pocket bottom) to ARM_Z_TOP (arm top, no post)
     expected_z = ARM_Z_TOP
     assert abs(z_size - expected_z) < TOL, f"Body Z={z_size}, expected {expected_z}"
 
@@ -122,11 +127,11 @@ def test_arm_at_top(body):
     assert abs(bb.max.Z - ARM_Z_TOP) < TOL
     assert ARM_Z_BOTTOM > SOCKET_HEIGHT / 2, "Arm should be in upper half of socket"
 
-def test_arm_extends_past_pocket(body):
-    """Arm must extend past the bushing pocket for structural integrity."""
+def test_arm_extends_past_bore(body):
+    """Arm must extend past the bearing bore for structural integrity."""
     bb = body.bounding_box()
     arm_right_edge = bb.max.X
-    assert arm_right_edge >= ARM_LENGTH + ARM_POCKET_DIA / 2
+    assert arm_right_edge >= ARM_LENGTH + ARM_BORE_DIA / 2
 
 
 # ─── Handle Knob Dimensions ──────────────────────────
@@ -138,7 +143,7 @@ def test_knob_bounding_box(knob):
     z_size = bb.max.Z - bb.min.Z
     assert abs(x_size - KNOB_OD) < TOL, f"Knob X={x_size}, expected {KNOB_OD}"
     assert abs(y_size - KNOB_OD) < TOL, f"Knob Y={y_size}, expected {KNOB_OD}"
-    # Z: barrel (30) + flange (2) + post (10) = 42
+    # Z: barrel (30) + flange (2) + post (8.3) = 40.3
     expected_z = KNOB_HEIGHT + FLANGE_HEIGHT + POST_HEIGHT
     assert abs(z_size - expected_z) < TOL, f"Knob Z={z_size}, expected {expected_z}"
 
@@ -161,35 +166,31 @@ def test_tpu_fits_in_pocket():
     assert TPU_LONG <= SOCKET_LONG - 2 * SOCKET_WALL + TOL
     assert TPU_HEIGHT <= POCKET_DEPTH + TOL
 
-def test_post_fits_in_pocket():
-    """Post OD must be smaller than arm pocket (clearance fit)."""
-    assert ARM_POCKET_DIA > POST_OD
-    clearance = ARM_POCKET_DIA - POST_OD
+def test_post_fits_in_bore():
+    """Post OD must be smaller than arm bore (clearance fit)."""
+    assert ARM_BORE_DIA > POST_OD
+    clearance = ARM_BORE_DIA - POST_OD
     assert 0.2 <= clearance <= 1.0, f"Clearance={clearance}, expected 0.2-1.0"
 
-def test_flange_wider_than_pocket():
-    """Flange must be wider than arm pocket to act as shoulder."""
-    assert FLANGE_DIA > ARM_POCKET_DIA
+def test_flange_wider_than_bore():
+    """Flange must be wider than arm bore to act as shoulder."""
+    assert FLANGE_DIA > ARM_BORE_DIA
 
-def test_bolt_clears_arm_floor():
-    """M3 bolt (3.0mm) must fit through arm floor bore."""
-    assert BOLT_CLEARANCE_DIA > 3.0
+def test_washer_wider_than_bore():
+    """Washer must be wider than arm bore for axial retention."""
+    assert WASHER_OD > ARM_BORE_DIA
 
-def test_heatset_wider_than_bolt():
-    """Heat-set pocket must be wider than the M3 bore."""
-    assert HEATSET_DIA > BOLT_CLEARANCE_DIA
+def test_post_longer_than_arm():
+    """Post must protrude below arm for washer clearance."""
+    assert POST_HEIGHT > ARM_HEIGHT
 
 def test_heatset_fits_in_post():
     """Heat-set must fit within post OD."""
     assert HEATSET_DIA < POST_OD
 
-def test_washer_recess_wider_than_bolt():
-    """Washer recess must accommodate M3 washer (5.5mm OD)."""
-    assert WASHER_RECESS_DIA > 5.5
-
-def test_washer_recess_fits_in_arm():
-    """Washer recess must be narrower than arm width."""
-    assert WASHER_RECESS_DIA < ARM_WIDTH
+def test_heatset_shorter_than_post():
+    """Heat-set must fit within post height."""
+    assert HEATSET_DEPTH < POST_HEIGHT
 
 
 # ─── Wall Thickness Checks ───────────────────────────
@@ -201,10 +202,6 @@ def test_socket_wall_minimum():
 def test_tpu_wall_minimum():
     """TPU wall around slot must be at least 2mm."""
     assert TPU_WALL >= 2.0
-
-def test_arm_floor_minimum():
-    """Arm floor (below bushing pocket) must be at least 1.5mm."""
-    assert ARM_FLOOR >= 1.5
 
 def test_post_wall_around_heatset():
     """Post wall around heat-set must be at least 1.5mm."""
@@ -228,6 +225,14 @@ def test_knob_no_overhang(knob):
     """Knob must be a single solid (revolved, no overhang issues)."""
     assert len(knob.solids()) == 1
 
+def test_knob_post_narrower_than_flange():
+    """Post must be narrower than flange (prints without supports)."""
+    assert POST_OD < FLANGE_DIA
+
+def test_knob_flange_narrower_than_barrel():
+    """Flange must be narrower than barrel (prints without supports)."""
+    assert FLANGE_DIA < KNOB_OD
+
 
 # ─── Parametric Consistency ───────────────────────────
 
@@ -242,10 +247,6 @@ def test_socket_height_derivation():
     assert abs(SOCKET_HEIGHT - (POCKET_DEPTH + 5.0)) < 0.01
     assert abs(POCKET_DEPTH - TPU_HEIGHT) < 0.01
 
-def test_arm_floor_derivation():
-    """ARM_FLOOR = ARM_HEIGHT - ARM_POCKET_DEPTH."""
-    assert abs(ARM_FLOOR - (ARM_HEIGHT - ARM_POCKET_DEPTH)) < 0.01
-
 def test_z_position_derivations():
     """Verify derived Z positions are consistent."""
     assert abs(ARM_Z_BOTTOM - (SOCKET_HEIGHT - ARM_HEIGHT)) < 0.01
@@ -253,3 +254,5 @@ def test_z_position_derivations():
     assert abs(KNOB_Z_BOTTOM - (ARM_Z_TOP + FLANGE_HEIGHT)) < 0.01
     assert abs(KNOB_Z_TOP - (KNOB_Z_BOTTOM + KNOB_HEIGHT)) < 0.01
     assert abs(POST_TIP_Z - (ARM_Z_TOP - POST_HEIGHT)) < 0.01
+    # Post tip below arm bottom (protrusion)
+    assert POST_TIP_Z < ARM_Z_BOTTOM
