@@ -15,11 +15,11 @@ Three printed parts plus hardware:
 
 | # | Part | Material | Function |
 |---|------|----------|----------|
-| A | Socket body | PETG-CF | Structural frame: holds TPU insert, integrates T-handle arm with bushing post |
+| A | Socket body | PETG-CF | Structural frame: holds TPU insert, integrates T-handle arm with bushing pocket |
 | B | TPU insert | TPU 95A | Drops into socket body (exact fit); slot engages peg head with cushioned grip |
-| C | Handle knob | PETG-CF | Palm grip at end of T-handle arm; spins freely on bushing post |
+| C | Handle knob | PETG-CF | Palm grip with integral bushing post; sits on arm, spins freely |
 
-Hardware: 1× M3×12 pan head bolt, 1× M3 washer (knob retention).
+Hardware: 1× M3×12 pan head bolt, 1× M3 washer (knob retention from arm underside).
 
 ---
 
@@ -125,17 +125,21 @@ The arm extends from the **top** of the socket, flowing out of one end of the st
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Arm length | 35.0mm | Center of socket to center of knob bushing |
-| Arm cross-section | 12mm × 8mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 8mm tall (vertical). Wide face flat on print bed. |
+| Arm cross-section | 12mm × 12mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 12mm tall (vertical). |
+| Arm height | 12.0mm | Increased to accommodate 10mm bushing pocket + 2mm floor |
 | Junction | Blend/tangent | Arm blends into the semicircular end of the stadium |
 | Junction fillet | 5.0mm | Stress relief at arm-to-socket junction |
 
-### Bushing Post (at arm end)
+### Bushing Pocket (in arm, at arm end)
+The arm has a **blind pocket** at its far end that receives the knob's integral bushing post. A bolt from the arm underside threads into a heat-set insert in the knob's post tip.
+
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Post OD | 8.0mm | Bearing surface for knob |
-| Post bore | 3.4mm | M3 bolt clearance (3.0mm + 0.4mm) |
-| Post height | 32.0mm | Knob height (30mm) + 2mm shoulder below |
-| Shoulder height | 2.0mm | Prevents knob sliding down |
+| Pocket diameter | 8.4mm | POST_OD (8.0mm) + 0.4mm clearance |
+| Pocket depth | 10.0mm | Bearing surface for knob post |
+| Floor thickness | 2.0mm | ARM_HEIGHT − pocket depth |
+| Bolt clearance hole | 3.4mm dia | M3 clearance through arm floor |
+| Washer recess | 6.5mm dia × 1.0mm | On arm underside, flush bolt head |
 
 ---
 
@@ -170,17 +174,29 @@ The pip (2.1mm dia, 1.4mm total protrusion) sits on the ring edge. The slot widt
 ## 5. Component C — Handle Knob (PETG-CF)
 
 ### Overall Shape
-Barrel-shaped palm knob. Through-bore for bushing post. Retained by M3 bolt + washer from the top.
+Barrel-shaped palm knob with an **integral bushing post** that descends into the arm's pocket. The knob sits on the arm via a flange (wider than the pocket), and is retained by an M3 bolt from below.
 
-### Dimensions
+### Barrel Dimensions
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Knob OD | 20.0mm | Comfortable palm grip |
 | Knob height | 30.0mm | Full palm wrap |
-| Bore diameter | 8.4mm | Bushing post OD (8.0mm) + 0.4mm clearance |
 | Edge radius | 3.0mm | Rounded top and bottom edges for comfort |
-| Washer recess diameter | 6.5mm | Recesses M3 washer (5.5mm OD + clearance) |
-| Washer recess depth | 1.0mm | Flush bolt head |
+
+### Integral Bushing Post
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Post OD | 8.0mm | Bearing surface, rides in arm pocket |
+| Post height | 10.0mm | Fills arm pocket (10mm bearing length) |
+| Flange diameter | 10.0mm | Wider than 8.4mm pocket — acts as shoulder |
+| Flange height | 2.0mm | Ring between barrel and post |
+
+### Heat-set Insert (in post tip)
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Heat-set pocket diameter | 4.0mm | Standard M3 brass insert |
+| Heat-set pocket depth | 4.5mm | Full insert engagement |
+| Location | Post tip (bottom) | Bolt from arm underside threads into this |
 
 ---
 
@@ -188,19 +204,19 @@ Barrel-shaped palm knob. Through-bore for bushing post. Retained by M3 bolt + wa
 
 ### Assembly Sequence
 1. Drop TPU insert into socket body pocket (exact fit, no interference)
-2. Slide knob onto bushing post (clearance fit)
-3. Insert M3×12 bolt through knob bore, through bushing post, thread into heat-set insert
+2. Insert knob post into arm pocket from above (clearance fit)
+3. Insert M3×12 bolt from arm underside, through arm floor, thread into heat-set insert in knob post tip
 
-The bushing post bore is a clearance hole. A brass M3 heat-set insert is installed in the base of the bushing post for bolt retention.
+The knob's flange rests on the arm top, preventing the knob from dropping into the pocket. The bolt retains the knob from below.
 
 ### Interface Tolerances
 
 | Interface | Type | Clearance/Interference |
 |-----------|------|----------------------|
 | TPU insert → Socket pocket | Exact fit | 0mm — TPU insert matches pocket exactly |
-| Knob bore → Bushing post | Running fit (clearance) | 0.4mm clearance on diameter |
-| M3 bolt → Bushing bore | Clearance | 0.4mm clearance on diameter |
-| M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set (4mm deep, ~4.0mm pocket dia) |
+| Knob post → Arm pocket | Running fit (clearance) | 0.4mm clearance on diameter |
+| M3 bolt → Arm floor bore | Clearance | 0.4mm clearance on diameter |
+| M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set (4.5mm deep, ~4.0mm pocket dia) |
 
 ### Bill of Materials
 
@@ -221,8 +237,8 @@ The bushing post bore is a clearance hole. A brass M3 heat-set insert is install
 | Nozzle | 0.4mm (hardened steel) |
 | Layer height | 0.2mm |
 | Perimeters | 4 |
-| Infill | 50% gyroid (arm), 100% (bushing post area) |
-| Notes | High infill near bushing post for bearing durability |
+| Infill | 50% gyroid (arm), 100% (bushing pocket area) |
+| Notes | High infill near bushing pocket for bearing durability |
 
 ### TPU Insert
 | Parameter | Value |
@@ -252,13 +268,13 @@ The bushing post bore is a clearance hole. A brass M3 heat-set insert is install
 All parts must print **without supports**.
 
 ### Socket Body
-Print with the socket bore facing **up** (arm flat on the bed, 12mm wide face down). The arm lies flat, providing a stable base. The stadium-shaped socket rises vertically from the arm. No supports needed — the pocket bore is open at the top, the arm junction has a generous fillet, and the stadium shape has no overhangs.
+Print with the socket bore facing **up** (arm flat on the bed, 12mm wide face down). The arm lies flat, providing a stable base. The stadium-shaped socket rises vertically from the arm. No supports needed — the pocket bore is open at the top, the bushing pocket is a simple blind bore in the arm, and the stadium shape has no overhangs.
 
 ### TPU Insert
 Print **upright** with the slot opening facing **up**. The stadium outer wall needs no supports. The slot is open-ended, so internal supports are not needed.
 
 ### Handle Knob
-Print **upright** with the bore vertical. Simple revolved shape, no supports needed.
+Print **barrel-down** (flat bottom on bed), bushing post pointing **up**. The barrel is a simple cylinder with fillets. The flange (10mm) is narrower than the barrel (20mm), so it prints fine. The post (8mm) is narrower than the flange (10mm) — only 1mm overhang per side, printable without supports.
 
 ---
 
@@ -287,8 +303,9 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] TPU slot slides over peg head without excessive force
 - [ ] TPU slot grips peg ring firmly (tool doesn't fall off when inverted)
 - [ ] TPU insert drops into socket body and stays put under cranking torque
-- [ ] Knob spins freely on bushing post (no binding)
-- [ ] M3 bolt + heat-set insert retains knob securely
+- [ ] Knob post spins freely in arm pocket (no binding)
+- [ ] M3 bolt + heat-set insert retains knob securely from below
+- [ ] Flange sits flush on arm top, preventing knob from dropping
 - [ ] T-handle arm does not flex noticeably under normal cranking force
 - [ ] Pip does not tear or permanently deform the TPU slot
 
@@ -296,8 +313,9 @@ Single Python file (`peg_turner.py`) using **build123d** to generate all three c
 - [ ] TPU slot width accommodates ring (2.4mm) + pip (2.1mm protrusion) via flex
 - [ ] TPU slot length clears ring OD (12.5mm) for easy entry
 - [ ] Engagement depth (17mm) provides stable, wobble-free drive
-- [ ] Knob bore clearance allows free rotation without excessive play
+- [ ] Knob post clearance allows free rotation without excessive play
 - [ ] Socket body wall thickness adequate (no cracking under torque)
+- [ ] Arm floor (2mm) adequate for bolt retention
 
 ### Usability
 - [ ] Comfortable single-hand operation

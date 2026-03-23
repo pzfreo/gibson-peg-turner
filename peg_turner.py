@@ -2,16 +2,19 @@
 Gibson Peg Turner — build123d CAD Model
 
 Generates STEP files for a 3-piece T-handle string winder:
-  A) Socket body (PETG-CF)  — stadium shape + arm + bushing post
+  A) Socket body (PETG-CF)  — stadium shape + arm with bushing pocket
   B) TPU insert (TPU 95A)   — stadium plug with peg-engagement slot
-  C) Handle knob (PETG-CF)  — barrel knob, free-spins on bushing post
+  C) Handle knob (PETG-CF)  — barrel knob with integral bushing post
 
 Modelled in usage orientation:
   - z=0 bottom: peg engagement (pocket opens here)
   - z=25 top: solid cap, arm extends from here
-  - Post/knob above the arm
+  - Knob sits on arm; integral post descends into arm pocket
 
-For printing, flip upside down so arm is on the bed and pocket faces up.
+For printing:
+  - Socket body: flip so arm is on the bed, pocket faces up
+  - Knob: print barrel-down, post pointing up (no supports)
+  - TPU insert: print upright, slot opening up
 """
 
 from build123d import *
@@ -42,29 +45,34 @@ POCKET_CHAMFER = 0.5
 # ─── T-Handle Arm ─────────────────────────────────────
 ARM_LENGTH = 35.0    # socket center → bushing center (X)
 ARM_WIDTH  = 12.0    # Y — horizontal on bed
-ARM_HEIGHT = 8.0     # Z — vertical
+ARM_HEIGHT = 12.0    # Z — increased for bushing pocket + floor
 ARM_RADIUS = 2.0     # corner rounding
 ARM_FILLET = 5.0     # junction stress-relief fillet
 
-# ─── Bushing Post ─────────────────────────────────────
-POST_OD           = 8.0     # bearing surface for knob
-POST_BORE         = 3.4     # M3 bolt clearance
-POST_HEIGHT       = 32.0    # total above arm (30mm knob + 2mm shoulder)
-POST_SHOULDER     = 2.0     # prevents knob sliding down
-POST_SHOULDER_DIA = 10.0    # must exceed KNOB_BORE (8.4)
+# ─── Bushing Pocket (in arm, receives knob post) ─────
+ARM_POCKET_DIA   = 8.4     # POST_OD + 0.4mm clearance
+ARM_POCKET_DEPTH = 10.0    # bearing surface depth
+ARM_FLOOR        = ARM_HEIGHT - ARM_POCKET_DEPTH  # 2.0mm
 
-# ─── Heat-set Insert ──────────────────────────────────
+# ─── Bolt Retention (from arm underside) ──────────────
+BOLT_CLEARANCE_DIA  = 3.4   # M3 clearance through arm floor
+WASHER_RECESS_DIA   = 6.5   # on arm underside
+WASHER_RECESS_DEPTH = 1.0
+
+# ─── Knob Bushing Post (integral with knob) ──────────
+POST_OD      = 8.0     # bearing surface
+POST_HEIGHT  = 10.0    # fills arm pocket (10mm bearing)
+FLANGE_DIA   = 10.0    # wider than pocket, acts as shoulder
+FLANGE_HEIGHT = 2.0    # shoulder ring
+
+# ─── Heat-set Insert (in knob post tip) ──────────────
 HEATSET_DIA   = 4.0
 HEATSET_DEPTH = 4.5
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 20.0
 KNOB_HEIGHT   = 30.0
-KNOB_BORE     = 8.4     # post clearance
 KNOB_EDGE_RAD = 3.0     # barrel rounding
-KNOB_CAP      = 2.0     # solid top cap for bolt retention
-WASHER_RECESS_DIA   = 6.5
-WASHER_RECESS_DEPTH = 1.0
 
 # ─── M3 Bolt (ghost) ─────────────────────────────────
 M3_SHAFT_DIA  = 3.0
@@ -73,13 +81,11 @@ M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
 
 # ─── Derived Z positions (usage orientation) ──────────
-# Pocket: z=0 (open) to z=POCKET_DEPTH (floor)
-# Solid cap: z=POCKET_DEPTH to z=SOCKET_HEIGHT
-# Arm: z=SOCKET_HEIGHT-ARM_HEIGHT to z=SOCKET_HEIGHT
-ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 17.0
+ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 13.0
 ARM_Z_TOP     = SOCKET_HEIGHT                  # 25.0
-POST_Z_BOTTOM = SOCKET_HEIGHT                  # 25.0
-POST_Z_TOP    = SOCKET_HEIGHT + POST_HEIGHT    # 39.0
+KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 27.0
+KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 57.0
+POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 15.0
 
 
 # ═══════════════════════════════════════════════════════
@@ -122,10 +128,11 @@ def build_tpu_insert() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_socket_body() -> Part:
-    """Stadium body + T-handle arm + bushing post.
+    """Stadium body + T-handle arm with bushing pocket.
 
-    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=17-25),
-    bushing post above arm (z=25-39).
+    Usage orientation: pocket opens at z=0 (bottom), arm at top (z=13-25).
+    Arm has a blind pocket for the knob's integral post, with bolt
+    clearance through the floor and washer recess on the underside.
 
     For printing: flip so arm is on the bed and pocket faces up.
     """
@@ -136,9 +143,8 @@ def build_socket_body() -> Part:
         extrude(amount=SOCKET_HEIGHT)
 
         # T-handle arm at the TOP of the socket
-        # Extends in +X, overshoots into socket AND past bushing for solid support
         arm_overshoot_left = SOCKET_LONG / 2       # overlap into -X of socket
-        arm_overshoot_right = POST_SHOULDER_DIA / 2 + 2  # extend past bushing
+        arm_overshoot_right = FLANGE_DIA / 2 + 2   # extend past flange seating
         arm_left = -arm_overshoot_left
         arm_right = ARM_LENGTH + arm_overshoot_right
         arm_total_len = arm_right - arm_left
@@ -147,20 +153,6 @@ def build_socket_body() -> Part:
             with Locations([(arm_cx, 0)]):
                 RectangleRounded(arm_total_len, ARM_WIDTH, ARM_RADIUS)
         extrude(amount=ARM_HEIGHT)
-
-        # Bushing post — shoulder (wider ring, knob stop)
-        with BuildSketch(Plane.XY.offset(POST_Z_BOTTOM)):
-            with Locations([(ARM_LENGTH, 0)]):
-                Circle(POST_SHOULDER_DIA / 2)
-        extrude(amount=POST_SHOULDER)
-
-        # Bushing post — shaft
-        shaft_z = POST_Z_BOTTOM + POST_SHOULDER
-        shaft_h = POST_HEIGHT - POST_SHOULDER
-        with BuildSketch(Plane.XY.offset(shaft_z)):
-            with Locations([(ARM_LENGTH, 0)]):
-                Circle(POST_OD / 2)
-        extrude(amount=shaft_h)
 
         # TPU pocket — stadium bore from bottom (z=0 upward)
         with BuildSketch(Plane.XY):
@@ -179,18 +171,23 @@ def build_socket_body() -> Part:
         if pocket_edges:
             chamfer(pocket_edges, POCKET_CHAMFER)
 
-        # M3 through-bore — post top down through arm
-        bore_total = POST_HEIGHT + ARM_HEIGHT
-        with BuildSketch(Plane.XY.offset(POST_Z_TOP)):
+        # Bushing pocket — blind bore from arm top for knob post
+        with BuildSketch(Plane.XY.offset(ARM_Z_TOP)):
             with Locations([(ARM_LENGTH, 0)]):
-                Circle(POST_BORE / 2)
-        extrude(amount=-bore_total, mode=Mode.SUBTRACT)
+                Circle(ARM_POCKET_DIA / 2)
+        extrude(amount=-ARM_POCKET_DEPTH, mode=Mode.SUBTRACT)
 
-        # Heat-set insert pocket — wider bore at arm underside
+        # M3 bolt clearance through arm floor (below bushing pocket)
         with BuildSketch(Plane.XY.offset(ARM_Z_BOTTOM)):
             with Locations([(ARM_LENGTH, 0)]):
-                Circle(HEATSET_DIA / 2)
-        extrude(amount=HEATSET_DEPTH, mode=Mode.SUBTRACT)
+                Circle(BOLT_CLEARANCE_DIA / 2)
+        extrude(amount=ARM_FLOOR, mode=Mode.SUBTRACT)
+
+        # Washer recess on arm underside
+        with BuildSketch(Plane.XY.offset(ARM_Z_BOTTOM)):
+            with Locations([(ARM_LENGTH, 0)]):
+                Circle(WASHER_RECESS_DIA / 2)
+        extrude(amount=WASHER_RECESS_DEPTH, mode=Mode.SUBTRACT)
 
     return bp.part
 
@@ -200,14 +197,14 @@ def build_socket_body() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_handle_knob() -> Part:
-    """Barrel-shaped palm knob with stepped bore.
+    """Barrel-shaped palm knob with integral bushing post.
 
-    Print upright, bore vertical. No supports needed.
+    Built with barrel at z=0..KNOB_HEIGHT, flange below at z=0..-FLANGE_HEIGHT,
+    and post below flange to z=-(FLANGE_HEIGHT+POST_HEIGHT).
 
-    Bore profile (top to bottom):
-      - Washer recess:  6.5mm dia × 1mm   (flush bolt head)
-      - Bolt clearance: 3.4mm dia × 1mm   (M3 through cap)
-      - Post bore:      8.4mm dia × 10mm  (bushing post clearance)
+    Heat-set insert pocket at post tip for bolt retention.
+
+    Print barrel-down (flat bottom on bed), post pointing up. No supports.
     """
     with BuildPart() as bp:
         # Barrel body
@@ -220,21 +217,21 @@ def build_handle_knob() -> Part:
         circ_edges = bp.edges().filter_by(GeomType.CIRCLE)
         fillet(circ_edges, KNOB_EDGE_RAD)
 
-        # Post bore — from bottom up to cap
-        bore_depth = KNOB_HEIGHT - KNOB_CAP
+        # Flange below barrel (wider than pocket, acts as shoulder)
         with BuildSketch(Plane.XY):
-            Circle(KNOB_BORE / 2)
-        extrude(amount=bore_depth, mode=Mode.SUBTRACT)
+            Circle(FLANGE_DIA / 2)
+        extrude(amount=-FLANGE_HEIGHT)
 
-        # Bolt clearance through cap
-        with BuildSketch(Plane.XY.offset(bore_depth)):
-            Circle(POST_BORE / 2)
-        extrude(amount=KNOB_CAP, mode=Mode.SUBTRACT)
+        # Bushing post below flange
+        with BuildSketch(Plane.XY.offset(-FLANGE_HEIGHT)):
+            Circle(POST_OD / 2)
+        extrude(amount=-POST_HEIGHT)
 
-        # Washer recess — widens top of bolt hole for flush washer
-        with BuildSketch(Plane.XY.offset(KNOB_HEIGHT)):
-            Circle(WASHER_RECESS_DIA / 2)
-        extrude(amount=-WASHER_RECESS_DEPTH, mode=Mode.SUBTRACT)
+        # Heat-set insert pocket at post tip (boring upward from tip)
+        post_tip_z = -(FLANGE_HEIGHT + POST_HEIGHT)
+        with BuildSketch(Plane.XY.offset(post_tip_z)):
+            Circle(HEATSET_DIA / 2)
+        extrude(amount=HEATSET_DEPTH, mode=Mode.SUBTRACT)
 
     return bp.part
 
@@ -244,16 +241,19 @@ def build_handle_knob() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_ghost_bolt() -> Part:
-    """M3×12 pan head bolt — ghost visualization."""
+    """M3×12 pan head bolt — ghost visualization.
+
+    Built with head at z=0 (bottom), shaft extending upward (+Z).
+    In assembly, positioned so shaft enters arm from below.
+    """
     with BuildPart() as bp:
-        # Head sits at z=0, shaft goes downward (-Z)
         Cylinder(
             M3_HEAD_DIA / 2, M3_HEAD_H,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
-        with BuildSketch(Plane.XY):
+        with BuildSketch(Plane.XY.offset(M3_HEAD_H)):
             Circle(M3_SHAFT_DIA / 2)
-        extrude(amount=-M3_SHAFT_LEN)
+        extrude(amount=M3_SHAFT_LEN)
     return bp.part
 
 
@@ -300,19 +300,18 @@ if __name__ == "__main__":
     body.label = "Socket Body"
     body.color = Color("dimgray")
 
-    # Knob on bushing post (sits on shoulder top)
-    knob_z = POST_Z_BOTTOM + POST_SHOULDER
-    knob_asm = Pos(ARM_LENGTH, 0, knob_z) * knob
+    # Knob: barrel z=0 maps to KNOB_Z_BOTTOM in assembly
+    knob_asm = Pos(ARM_LENGTH, 0, KNOB_Z_BOTTOM) * knob
     knob_asm.label = "Handle Knob"
     knob_asm.color = Color("silver")
 
-    # Ghost bolt — head at post top, shaft goes down into bore
-    bolt_asm = Pos(ARM_LENGTH, 0, POST_Z_TOP) * bolt
+    # Ghost bolt — head below arm, shaft goes upward into post
+    bolt_asm = Pos(ARM_LENGTH, 0, ARM_Z_BOTTOM - M3_HEAD_H) * bolt
     bolt_asm.label = "M3 Bolt"
     bolt_asm.color = Color("gold")
 
-    # Ghost heat-set insert — at bottom of bore (arm underside)
-    heatset_asm = Pos(ARM_LENGTH, 0, ARM_Z_BOTTOM) * heatset
+    # Ghost heat-set — in knob post tip
+    heatset_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z) * heatset
     heatset_asm.label = "Heat-set Insert"
     heatset_asm.color = Color("darkorange")
 
