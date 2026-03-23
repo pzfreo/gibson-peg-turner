@@ -105,9 +105,9 @@ def test_body_bounding_box(body):
     x_size = bb.max.X - bb.min.X
     y_size = bb.max.Y - bb.min.Y
     z_size = bb.max.Z - bb.min.Z
-    # X: socket -X edge to arm end (arm extends past bushing by flange_dia/2 + 2)
+    # X: socket -X edge to arm end (arm starts at socket center, extends +X)
     arm_right = ARM_LENGTH + FLANGE_DIA / 2 + 2
-    expected_x = SOCKET_LONG / 2 + arm_right
+    expected_x = SOCKET_LONG / 2 + arm_right  # -X from socket + arm to +X
     assert abs(x_size - expected_x) < TOL, f"Body X={x_size}, expected ~{expected_x}"
     # Y should be max of socket width or arm width
     expected_y = max(SOCKET_SHORT, ARM_WIDTH)

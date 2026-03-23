@@ -106,9 +106,9 @@ def build_tpu_insert() -> Part:
             SlotOverall(TPU_LONG, TPU_SHORT)
         extrude(amount=TPU_HEIGHT)
 
-        # Peg engagement slot — open at top, 3mm solid base
+        # Peg engagement slot — stadium shape matching outer profile, open at top
         with BuildSketch(Plane.XY.offset(TPU_HEIGHT)):
-            Rectangle(SLOT_LENGTH, SLOT_WIDTH)
+            SlotOverall(SLOT_LENGTH, SLOT_WIDTH)
         extrude(amount=-SLOT_DEPTH, mode=Mode.SUBTRACT)
 
         # Chamfer the slot entry edges (inner wire of the top face)
@@ -145,10 +145,9 @@ def build_socket_body() -> Part:
             SlotOverall(SOCKET_LONG, SOCKET_SHORT)
         extrude(amount=SOCKET_HEIGHT)
 
-        # T-handle arm at the TOP of the socket
-        arm_overshoot_left = SOCKET_LONG / 2       # overlap into -X of socket
+        # T-handle arm at the TOP of the socket — extends +X only
+        arm_left = 0                                # start at socket center (solid cap region)
         arm_overshoot_right = FLANGE_DIA / 2 + 2   # extend past flange seating
-        arm_left = -arm_overshoot_left
         arm_right = ARM_LENGTH + arm_overshoot_right
         arm_total_len = arm_right - arm_left
         arm_cx = (arm_left + arm_right) / 2
