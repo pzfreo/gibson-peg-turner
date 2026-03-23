@@ -27,20 +27,20 @@ from pathlib import Path
 OUT = Path(__file__).parent
 
 # ─── Peg Slot ─────────────────────────────────────────
-SLOT_WIDTH   = 4.0      # Y — grips peg ring (2.4mm + compression)
+SLOT_WIDTH   = 3.0      # Y — grips peg ring (2.4mm + compression)
 SLOT_LENGTH  = 15.0     # X — spans ring OD (12.5mm) + clearance
 SLOT_DEPTH   = 17.0     # Z — full peg engagement depth
 SLOT_CHAMFER = 1.0      # 45° entry chamfer
 
 # ─── TPU Insert ───────────────────────────────────────
 TPU_WALL   = 2.0
-TPU_SHORT  = SLOT_WIDTH  + 2 * TPU_WALL   # 8.0 — short axis (Y)
+TPU_SHORT  = SLOT_WIDTH  + 2 * TPU_WALL   # 7.0 — short axis (Y)
 TPU_LONG   = SLOT_LENGTH + 2 * TPU_WALL   # 19.0 — long axis (X)
 TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 19.0 — total height (Z)
 
 # ─── Socket Body ──────────────────────────────────────
 SOCKET_WALL   = 2.65
-SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 13.3 — short axis (Y)
+SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 12.3 — short axis (Y)
 SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 24.3 — long axis (X)
 SOCKET_CAP    = 10.0                           # solid cap above pocket (arm clearance)
 SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 29.0 — total height (Z)
