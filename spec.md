@@ -16,7 +16,7 @@ Three printed parts plus hardware:
 | # | Part | Material | Function |
 |---|------|----------|----------|
 | A | Socket body | PETG-CF | Structural frame: holds TPU insert, integrates T-handle arm with bushing post |
-| B | TPU insert | TPU 95A | Press-fits into socket body; slot engages peg head with cushioned grip |
+| B | TPU insert | TPU 95A | Drops into socket body (exact fit); slot engages peg head with cushioned grip |
 | C | Handle knob | PETG-CF | Palm grip at end of T-handle arm; spins freely on bushing post |
 
 Hardware: 1× M3×12 pan head bolt, 1× M3 washer (knob retention).
@@ -85,28 +85,48 @@ The 17mm slot depth provides full engagement for positive drive and alignment.
 ## 3. Component A — Socket Body (PETG-CF)
 
 ### Overall Shape
-Cylindrical socket body with an integrated T-handle arm. The socket axis is vertical (peg engagement direction). The arm extends horizontally from the socket.
+**Stadium-shaped** socket body with an integrated T-handle arm. The socket axis is vertical (peg engagement direction). The cross-section is a stadium (rectangle with semicircular ends). The long axis of the stadium aligns with the arm direction, so the arm flows naturally out of one end of the stadium. The arm connects at the **top** of the socket.
+
+### Stadium Cross-Section Derivation
+
+Both the socket body and TPU insert share a stadium cross-section. Dimensions are derived from the peg slot geometry outward:
+
+| Layer | Short axis | Long axis | Derivation |
+|-------|-----------|-----------|------------|
+| Peg slot (void) | 4.0mm | 15.0mm | Slot width × slot length |
+| TPU insert (outer) | 4.0 + 2×3.0 = **10.0mm** | 15.0 + 2×3.0 = **21.0mm** | Slot + 2× TPU wall (3.0mm) |
+| Socket pocket (inner) | **10.0mm** | **21.0mm** | Exact fit — no interference (TPU drops in) |
+| Socket body (outer) | 10.0 + 2×2.65 = **15.3mm** | 21.0 + 2×2.65 = **26.3mm** | Pocket + 2× socket wall (2.65mm) |
+
+The stadium shape is a rectangle of (long − short) length with semicircular caps of radius = short/2:
+- **Socket outer**: 15.3mm wide, semicircle radius 7.65mm, straight section 11.0mm (26.3 − 15.3)
+- **Pocket/TPU insert**: 10.0mm wide, semicircle radius 5.0mm, straight section 11.0mm (21.0 − 10.0)
 
 ### TPU Insert Pocket
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Pocket shape | Cylindrical bore | Matches TPU insert OD |
-| Pocket ID | 20.7mm | TPU insert OD (21.0mm) − 0.3mm interference |
+| Pocket shape | Stadium bore | Matches TPU insert exactly |
+| Pocket short axis | 10.0mm | Exact fit to TPU insert (no interference) |
+| Pocket long axis | 21.0mm | Exact fit to TPU insert (no interference) |
 | Pocket depth | 20.0mm | TPU insert length (17mm slot + 3mm base) |
 | Entry chamfer | 0.5mm × 45° | Eases TPU insertion |
 
 ### Socket Body Envelope
 | Parameter | Value | Derivation |
 |-----------|-------|------------|
-| Socket OD | 26.0mm | Pocket ID (20.7mm) + 2 × 2.65mm wall |
+| Socket short axis (OD) | 15.3mm | Pocket (10.0mm) + 2 × 2.65mm wall |
+| Socket long axis (OD) | 26.3mm | Pocket (21.0mm) + 2 × 2.65mm wall |
 | Socket height | 25.0mm | Pocket depth (20mm) + 5mm top cap |
 | Wall thickness | 2.65mm | Minimum for PETG-CF structural integrity |
 
 ### T-Handle Arm
+The arm extends from the **top** of the socket, flowing out of one end of the stadium's long axis. The arm blends smoothly into the socket body wall (tangent junction with fillet).
+
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Arm length | 50.0mm | Center of socket to center of knob bushing |
-| Arm cross-section | 12mm × 8mm | Rectangular, rounded edges (2mm radius) |
+| Arm cross-section | 12mm × 8mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 8mm tall (vertical). Wide face flat on print bed. |
+| Junction | Blend/tangent | Arm blends into the semicircular end of the stadium |
 | Junction fillet | 5.0mm | Stress relief at arm-to-socket junction |
 
 ### Bushing Post (at arm end)
@@ -122,7 +142,7 @@ Cylindrical socket body with an integrated T-handle arm. The socket axis is vert
 ## 4. Component B — TPU Insert
 
 ### Overall Shape
-Cylindrical plug with an open-ended slot cut into one end. The slot engages the peg head; the cylindrical body press-fits into the socket body pocket.
+**Stadium-shaped** plug with an open-ended slot cut into one end. The slot runs along the long axis of the stadium. The slot engages the peg head; the stadium body drops into the socket body pocket (exact fit, no interference).
 
 ### Primary Dimensions
 | Parameter | Value | Notes |
@@ -135,8 +155,9 @@ Cylindrical plug with an open-ended slot cut into one end. The slot engages the 
 ### Insert Envelope
 | Parameter | Value | Derivation |
 |-----------|-------|------------|
-| Insert OD | 21.0mm | Slot length (15mm) + 2 × 3mm wall |
-| Insert length | 20.0mm | Slot depth (17mm) + 3mm solid base |
+| Insert short axis | 10.0mm | Slot width (4mm) + 2 × 3mm wall |
+| Insert long axis | 21.0mm | Slot length (15mm) + 2 × 3mm wall |
+| Insert length (height) | 20.0mm | Slot depth (17mm) + 3mm solid base |
 | Wall around slot (sides) | 3.0mm | Minimum for TPU grip strength |
 | Wall around slot (ends) | 3.0mm | (21mm − 15mm) / 2 |
 | Base thickness | 3.0mm | Solid base below slot bottom |
@@ -166,22 +187,20 @@ Barrel-shaped palm knob. Through-bore for bushing post. Retained by M3 bolt + wa
 ## 6. Assembly & Interfaces
 
 ### Assembly Sequence
-1. Press TPU insert into socket body pocket (interference fit)
+1. Drop TPU insert into socket body pocket (exact fit, no interference)
 2. Slide knob onto bushing post (clearance fit)
-3. Insert M3×12 bolt through knob bore, through bushing post, thread into...
+3. Insert M3×12 bolt through knob bore, through bushing post, thread into heat-set insert
 
-Note: The bushing post bore is a clearance hole. The M3 bolt needs a retention method at the bottom. Options:
-- **Heat-set M3 insert** in the base of the bushing post (recommended)
-- Self-tapping into PETG-CF pilot hole (less reliable)
+The bushing post bore is a clearance hole. A brass M3 heat-set insert is installed in the base of the bushing post for bolt retention.
 
 ### Interface Tolerances
 
 | Interface | Type | Clearance/Interference |
 |-----------|------|----------------------|
-| TPU insert → Socket pocket | Press-fit (interference) | 0.3mm interference on diameter |
+| TPU insert → Socket pocket | Exact fit | 0mm — TPU insert matches pocket exactly |
 | Knob bore → Bushing post | Running fit (clearance) | 0.4mm clearance on diameter |
 | M3 bolt → Bushing bore | Clearance | 0.4mm clearance on diameter |
-| M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set |
+| M3 bolt → Heat-set insert | Thread engagement | Standard M3 heat-set (4mm deep, ~4.0mm pocket dia) |
 
 ### Bill of Materials
 
@@ -230,23 +249,44 @@ Note: The bushing post bore is a clearance hole. The M3 bolt needs a retention m
 
 ## 8. Print Orientation
 
+All parts must print **without supports**.
+
 ### Socket Body
-Print with the socket bore facing **up** (arm flat on the bed). The arm lies flat, providing a stable base. The socket cylinder rises vertically. No supports needed — the pocket bore is open at the top and the arm junction has a generous fillet.
+Print with the socket bore facing **up** (arm flat on the bed, 12mm wide face down). The arm lies flat, providing a stable base. The stadium-shaped socket rises vertically from the arm. No supports needed — the pocket bore is open at the top, the arm junction has a generous fillet, and the stadium shape has no overhangs.
 
 ### TPU Insert
-Print **upright** with the slot opening facing **up**. The cylindrical outer wall needs no supports. The slot is open-ended, so internal supports are not needed.
+Print **upright** with the slot opening facing **up**. The stadium outer wall needs no supports. The slot is open-ended, so internal supports are not needed.
 
 ### Handle Knob
 Print **upright** with the bore vertical. Simple revolved shape, no supports needed.
 
 ---
 
-## 9. Verification Checklist
+## 9. Output & Tooling
+
+### Implementation
+Single Python file (`peg_turner.py`) using **build123d** to generate all three components.
+
+### Output Format
+- Individual **STEP** files for each component (for slicing/printing)
+- Combined **STEP** assembly file (for visualization in VSCode OCP CAD Viewer)
+
+### File Outputs
+| File | Contents |
+|------|----------|
+| `socket_body.step` | Component A — Socket body (PETG-CF) |
+| `tpu_insert.step` | Component B — TPU insert |
+| `handle_knob.step` | Component C — Handle knob (PETG-CF) |
+| `assembly.step` | All three components in assembled position |
+
+---
+
+## 10. Verification Checklist
 
 ### Fit & Function
 - [ ] TPU slot slides over peg head without excessive force
 - [ ] TPU slot grips peg ring firmly (tool doesn't fall off when inverted)
-- [ ] TPU insert press-fits into socket body and stays put under cranking torque
+- [ ] TPU insert drops into socket body and stays put under cranking torque
 - [ ] Knob spins freely on bushing post (no binding)
 - [ ] M3 bolt + heat-set insert retains knob securely
 - [ ] T-handle arm does not flex noticeably under normal cranking force
