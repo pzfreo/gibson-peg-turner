@@ -203,9 +203,13 @@ def build_handle_knob() -> Part:
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
 
-        # Fillet only the top edge — bottom meets flange so no fillet there
-        top_edge = bp.edges().filter_by(GeomType.CIRCLE).sort_by(Axis.Z)[-1]
+        # Fillet top edge (full radius) and bottom edge (tapers to flange dia)
+        circ_edges = bp.edges().filter_by(GeomType.CIRCLE).sort_by(Axis.Z)
+        bottom_edge = circ_edges[0]
+        top_edge = circ_edges[-1]
+        bottom_fillet = (KNOB_OD - FLANGE_DIA) / 2  # 1mm — meets flange exactly
         fillet([top_edge], KNOB_EDGE_RAD)
+        fillet([bottom_edge], bottom_fillet)
 
         # Flange below barrel (wider than bore, acts as shoulder)
         with BuildSketch(Plane.XY):
