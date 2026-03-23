@@ -59,13 +59,13 @@ ARM_BORE_DIA = 10.4   # POST_OD + 0.4mm clearance
 
 # ─── Knob Bushing Post (integral with knob) ──────────
 POST_OD       = 10.0   # bearing surface
-POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
+POST_HEIGHT   = 12.0   # ARM_HEIGHT + 4mm — protrudes below arm for washer
 FLANGE_DIA    = 14.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
 HEATSET_DIA   = 4.8    # slightly under 5mm insert for snug melt-in grip
-HEATSET_DEPTH = 6.0    # deep enough for 8mm bolt (minus washer + gap)
+HEATSET_DEPTH = 7.0    # deep enough for 12mm bolt (minus washer + gap)
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 16.0
@@ -81,7 +81,7 @@ WASHER_CBORE_DEPTH = 2.5   # recesses bolt head fully
 
 # ─── M3 Bolt (ghost) ─────────────────────────────────
 M3_SHAFT_DIA  = 3.0
-M3_SHAFT_LEN  = 8.0     # only needs to reach heat-set
+M3_SHAFT_LEN  = 12.0    # reaches heat-set through thicker washer + gap
 M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
 
