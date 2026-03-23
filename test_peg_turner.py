@@ -214,9 +214,10 @@ def test_heatset_fits_in_post():
     """Heat-set must fit within post OD."""
     assert HEATSET_DIA < POST_OD
 
-def test_heatset_shorter_than_post():
-    """Heat-set must fit within post height."""
-    assert HEATSET_DEPTH < POST_HEIGHT
+def test_heatset_fits_within_knob():
+    """Heat-set pocket must fit within total knob depth (post + flange + barrel)."""
+    total_depth = POST_HEIGHT + FLANGE_HEIGHT + KNOB_HEIGHT
+    assert HEATSET_DEPTH < total_depth
 
 
 # ─── Wall Thickness Checks ───────────────────────────

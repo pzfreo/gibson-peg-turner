@@ -42,7 +42,7 @@ TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 19.0 — total height (Z)
 SOCKET_WALL   = 2.65
 SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 12.3 — short axis (Y)
 SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 24.3 — long axis (X)
-SOCKET_CAP    = 10.0                           # solid cap above pocket (arm clearance)
+SOCKET_CAP    = 18.0                           # solid cap above pocket (extra height pushes bolt from pegs)
 SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 29.0 — total height (Z)
 POCKET_DEPTH  = TPU_HEIGHT                     # 19.0
 POCKET_CHAMFER = 0.5
@@ -59,17 +59,17 @@ ARM_BORE_DIA = 10.4   # POST_OD + 0.4mm clearance
 
 # ─── Knob Bushing Post (integral with knob) ──────────
 POST_OD       = 10.0   # bearing surface
-POST_HEIGHT   = 12.0   # ARM_HEIGHT + 4mm — protrudes below arm for washer
+POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
 FLANGE_DIA    = 14.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
 HEATSET_DIA   = 4.8    # slightly under 5mm insert for snug melt-in grip
-HEATSET_DEPTH = 7.0    # deep enough for 12mm bolt (minus washer + gap)
+HEATSET_DEPTH = 11.0   # deep enough for 12mm bolt — extends past post into flange/barrel
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 16.0
-KNOB_HEIGHT   = 38.0
+KNOB_HEIGHT   = 30.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
 # ─── Printed Retaining Washer (PETG-CF) ──────────────
