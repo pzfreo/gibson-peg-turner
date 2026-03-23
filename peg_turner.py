@@ -51,7 +51,7 @@ POCKET_CHAMFER = 0.5
 ARM_LENGTH = 23.0    # socket center → bushing center (X)
 ARM_WIDTH  = 16.0    # Y — horizontal on bed
 ARM_HEIGHT = 8.0     # Z — through-bore, no floor needed
-ARM_RADIUS = 2.0     # corner rounding
+ARM_RADIUS = 4.0     # corner rounding (enlarged fillets on arm ends)
 ARM_FILLET = 5.0     # junction stress-relief fillet
 
 # ─── Arm Bearing Bore (through-hole for knob post) ───
