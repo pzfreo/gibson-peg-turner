@@ -40,7 +40,7 @@ POCKET_DEPTH  = TPU_HEIGHT                     # 20.0
 POCKET_CHAMFER = 0.5
 
 # ─── T-Handle Arm ─────────────────────────────────────
-ARM_LENGTH = 50.0    # socket center → bushing center (X)
+ARM_LENGTH = 35.0    # socket center → bushing center (X)
 ARM_WIDTH  = 12.0    # Y — horizontal on bed
 ARM_HEIGHT = 8.0     # Z — vertical
 ARM_RADIUS = 2.0     # corner rounding
@@ -49,7 +49,7 @@ ARM_FILLET = 5.0     # junction stress-relief fillet
 # ─── Bushing Post ─────────────────────────────────────
 POST_OD           = 8.0     # bearing surface for knob
 POST_BORE         = 3.4     # M3 bolt clearance
-POST_HEIGHT       = 14.0    # total above arm (12mm knob + 2mm shoulder)
+POST_HEIGHT       = 32.0    # total above arm (30mm knob + 2mm shoulder)
 POST_SHOULDER     = 2.0     # prevents knob sliding down
 POST_SHOULDER_DIA = 10.0    # must exceed KNOB_BORE (8.4)
 
@@ -59,7 +59,7 @@ HEATSET_DEPTH = 4.5
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 20.0
-KNOB_HEIGHT   = 12.0
+KNOB_HEIGHT   = 30.0
 KNOB_BORE     = 8.4     # post clearance
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 KNOB_CAP      = 2.0     # solid top cap for bolt retention

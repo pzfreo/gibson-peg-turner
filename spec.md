@@ -124,7 +124,7 @@ The arm extends from the **top** of the socket, flowing out of one end of the st
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Arm length | 50.0mm | Center of socket to center of knob bushing |
+| Arm length | 35.0mm | Center of socket to center of knob bushing |
 | Arm cross-section | 12mm × 8mm | Rectangular, rounded edges (2mm radius). 12mm wide (horizontal), 8mm tall (vertical). Wide face flat on print bed. |
 | Junction | Blend/tangent | Arm blends into the semicircular end of the stadium |
 | Junction fillet | 5.0mm | Stress relief at arm-to-socket junction |
@@ -134,7 +134,7 @@ The arm extends from the **top** of the socket, flowing out of one end of the st
 |-----------|-------|-------|
 | Post OD | 8.0mm | Bearing surface for knob |
 | Post bore | 3.4mm | M3 bolt clearance (3.0mm + 0.4mm) |
-| Post height | 14.0mm | Knob height (12mm) + 2mm shoulder below |
+| Post height | 32.0mm | Knob height (30mm) + 2mm shoulder below |
 | Shoulder height | 2.0mm | Prevents knob sliding down |
 
 ---
@@ -176,7 +176,7 @@ Barrel-shaped palm knob. Through-bore for bushing post. Retained by M3 bolt + wa
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | Knob OD | 20.0mm | Comfortable palm grip |
-| Knob height | 12.0mm | Sufficient for palm contact |
+| Knob height | 30.0mm | Full palm wrap |
 | Bore diameter | 8.4mm | Bushing post OD (8.0mm) + 0.4mm clearance |
 | Edge radius | 3.0mm | Rounded top and bottom edges for comfort |
 | Washer recess diameter | 6.5mm | Recesses M3 washer (5.5mm OD + clearance) |
