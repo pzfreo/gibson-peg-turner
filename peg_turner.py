@@ -69,13 +69,15 @@ HEATSET_DEPTH = 6.0    # deep enough for 8mm bolt (minus washer + gap)
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 16.0
-KNOB_HEIGHT   = 30.0
+KNOB_HEIGHT   = 38.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
 # ─── Printed Retaining Washer (PETG-CF) ──────────────
 WASHER_OD = 14.0    # must be > ARM_BORE_DIA (10.4mm) — covers bore
 WASHER_ID = 3.2     # M3 bolt clearance
-WASHER_H  = 2.0     # thick enough for PETG-CF strength
+WASHER_H  = 4.0     # thick enough for bolt head counterbore + floor
+WASHER_CBORE_DIA   = 6.0   # M3 pan head (5.5mm) + clearance
+WASHER_CBORE_DEPTH = 2.5   # recesses bolt head fully
 
 # ─── M3 Bolt (ghost) ─────────────────────────────────
 M3_SHAFT_DIA  = 3.0
@@ -87,7 +89,7 @@ M3_HEAD_H     = 2.0
 ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 21.0
 ARM_Z_TOP     = SOCKET_HEIGHT                  # 29.0
 KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 31.0
-KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 61.0
+KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 69.0
 POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 20.7 (0.3mm below arm)
 
 
@@ -248,20 +250,28 @@ def build_handle_knob() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_retaining_washer() -> Part:
-    """Printed PETG-CF washer — covers arm bore from below.
+    """Printed PETG-CF washer with bolt head counterbore.
 
-    12mm OD × 2mm thick, 3.2mm M3 bore. Print flat. No supports.
+    14mm OD × 4mm thick, 3.2mm M3 through-bore.
+    Counterbore on bottom (z=0) recesses bolt head flush.
+    Top face (z=4) bears on post tip.
+    Print flat, counterbore facing up. No supports.
     """
     with BuildPart() as bp:
         Cylinder(
             WASHER_OD / 2, WASHER_H,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
+        # M3 through-bore
         Cylinder(
             WASHER_ID / 2, WASHER_H,
             align=(Align.CENTER, Align.CENTER, Align.MIN),
             mode=Mode.SUBTRACT,
         )
+        # Counterbore for bolt head (from bottom, z=0 upward)
+        with BuildSketch(Plane.XY):
+            Circle(WASHER_CBORE_DIA / 2)
+        extrude(amount=WASHER_CBORE_DEPTH, mode=Mode.SUBTRACT)
     return bp.part
 
 
@@ -339,8 +349,8 @@ if __name__ == "__main__":
     washer_asm.label = "Retaining Washer"
     washer_asm.color = Color("forestgreen")
 
-    # Ghost bolt — head below washer, shaft goes up into post heat-set
-    bolt_z = POST_TIP_Z - WASHER_H - M3_HEAD_H
+    # Ghost bolt — head inside washer counterbore, shaft goes up into heat-set
+    bolt_z = POST_TIP_Z - WASHER_H  # bolt head sits at washer bottom (inside counterbore)
     bolt_asm = Pos(ARM_LENGTH, 0, bolt_z) * bolt
     bolt_asm.label = "M3 Bolt"
     bolt_asm.color = Color("gold")

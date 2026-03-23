@@ -21,7 +21,7 @@ from peg_turner import (
     HEATSET_DIA, HEATSET_DEPTH,
     KNOB_OD, KNOB_HEIGHT,
     KNOB_Z_BOTTOM, KNOB_Z_TOP, POST_TIP_Z,
-    WASHER_OD, WASHER_ID, WASHER_H,
+    WASHER_OD, WASHER_ID, WASHER_H, WASHER_CBORE_DIA, WASHER_CBORE_DEPTH,
 )
 
 TOL = 0.15  # mm — geometric tolerance for bounding box checks
