@@ -60,7 +60,7 @@ ARM_BORE_DIA = 8.4   # POST_OD + 0.4mm clearance
 # ─── Knob Bushing Post (integral with knob) ──────────
 POST_OD       = 8.0    # bearing surface
 POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
-FLANGE_DIA    = 10.0   # wider than bore, sits on arm top
+FLANGE_DIA    = 12.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
 # ─── Heat-set Insert (in knob post tip) ──────────────
@@ -68,7 +68,7 @@ HEATSET_DIA   = 4.0
 HEATSET_DEPTH = 4.5
 
 # ─── Handle Knob ──────────────────────────────────────
-KNOB_OD       = 20.0
+KNOB_OD       = 16.0
 KNOB_HEIGHT   = 30.0
 KNOB_EDGE_RAD = 3.0     # barrel rounding
 
