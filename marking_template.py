@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 """Marking template for the 5-gang Gibson tuner frame.
 
-A drill/scribe template for transferring the frame's hole pattern and outline
-onto a guitar headstock. It is the *outer shell* of the frame only: the top
-(mounting) plate plus the outer housing side walls — with the inner cavity and
-the bottom wall removed. Press it onto the headstock and mark through the holes.
+A drill/scribe template for transferring the frame's mounting-hole pattern and
+outline onto a guitar headstock. It is the *outer shell* of the frame only: the
+top (mounting) plate plus the outer housing side walls — with the inner cavity
+and the bottom wall removed. Press it onto the headstock and mark through the
+small centre-marking holes.
+
+Only the six mounting holes are marked, and they all lie on the centreline, so
+the template is hand-agnostic: one part serves both left- and right-hand frames
+(the blank flange wall is cosmetic/structural and has no holes). It is built
+from the right-hand frame internally.
 
 The frame geometry is the single source of truth in the sibling `gib-tuners-mk2`
 repository; this script imports `create_frame()` from it so the template can
 never drift from the real frame.  Set GIB_TUNERS_MK2 to override the location.
 
 Usage:
-    python marking_template.py                 # right hand, c13-10 gear
-    python marking_template.py --hand left
+    python marking_template.py                 # c13-10 gear
     python marking_template.py --gear bh11-cd-fx --format both
 """
 
@@ -47,13 +52,16 @@ from gib_tuners.config.parameters import Hand  # noqa: E402
 
 
 def _add_flex_gaps(frame, config, plate_top: float, web: float):
-    """Cut 45 degree V-notches from the TOP face only into the 4 gaps between
-    stations, forming a printable living hinge so the jig can flex to a curved
-    headstock. With all notches on the top, the thin web sits at the bottom
-    (contact) face, so that face keeps its length when bent and the marked hole
-    spacing stays correct. Notches span the full width; printed upside-down
-    (plate top on the bed) the <=45 degree walls need no supports. Notches may
-    cross the marking holes -- that is fine.
+    """Cut two 45 degree V-notches from the TOP face only into each of the 4 gaps
+    between stations, forming a printable living hinge so the jig can flex to a
+    curved headstock. With all notches on the top, the thin web sits at the
+    bottom (contact) face, so that face keeps its length when bent and the marked
+    hole spacing stays correct. Notches span the full width; printed upside-down
+    (plate top on the bed) the <=45 degree walls need no supports.
+
+    The two notches sit at the outer thirds of each gap, leaving the centre
+    (where the marking hole is) un-notched: this keeps the hole clean and avoids
+    a third nozzle-crossing per gap, which reduces stringing.
     """
     fp = config.frame
     scale = config.scale
@@ -63,10 +71,10 @@ def _add_flex_gaps(frame, config, plate_top: float, web: float):
     hcs = [c * scale for c in fp.housing_centers]
 
     thickness = plate_top + wall          # plate thickness in the gaps
-    want_depth = thickness - web          # cut depth that leaves `web` at apex
+    depth = thickness - web               # cut depth that leaves `web` at apex
     margin = 0.5                          # keep notches off the housings
 
-    def notch(y, depth):
+    def notch(y):
         diag = depth * math.sqrt(2)       # square side -> 45 deg V of this depth
         cut = Box(box_outer + 4, diag, diag).rotate(Axis.X, 45)
         return cut.locate(Location((0, y, plate_top)))
@@ -76,17 +84,14 @@ def _add_flex_gaps(frame, config, plate_top: float, web: float):
         width = g1 - g0
         if width < 1.0:
             continue
-        n = max(1, int(width // (2 * want_depth)))   # notches that fit
-        depth = min(want_depth, width / (2 * n) - 0.05)
-        for k in range(n):
-            yc = g0 + width * (k + 0.5) / n
-            frame = frame - notch(yc, depth)
+        for frac in (1 / 6, 5 / 6):       # outer thirds; centre stays clear
+            frame = frame - notch(g0 + width * frac)
     return frame
 
 
 def build_marking_template(
     config, plate_thickness: float, wall_thickness: float,
-    flex: bool = True, web: float = 0.6, mark_dia: float = 1.0,
+    flex: bool = True, web: float = 0.6, mark_dia: float = 1.5,
 ) -> Part:
     """Top plate + the peg-entry side flange. The string-post, peg-entry and the
     full-size mounting holes are all plugged; a small `mark_dia` centre-marking
@@ -196,7 +201,6 @@ def main():
         description="Marking template (outer shell) for the tuner frame",
     )
     parser.add_argument("--gear", default="c13-10", help="Gear config name (default: c13-10)")
-    parser.add_argument("--hand", choices=["right", "left"], default="right")
     parser.add_argument("--format", choices=["step", "stl", "both"], default="step")
     parser.add_argument(
         "--plate-thickness", type=float, default=2.0,
@@ -215,16 +219,18 @@ def main():
         help="Remaining web thickness at the flex-notch apex in mm (default: 0.6)",
     )
     parser.add_argument(
-        "--mark-dia", type=float, default=1.0,
-        help="Centre-marking hole diameter at each mounting position in mm (default: 1.0)",
+        "--mark-dia", type=float, default=1.5,
+        help="Centre-marking hole diameter at each mounting position in mm (default: 1.5)",
     )
     args = parser.parse_args()
 
     gear_paths = resolve_gear_config(args.gear)
+    # Hand-agnostic: only the centreline mounting holes are marked, so the
+    # right-hand frame serves for both hands. Build from the right-hand frame.
     config = create_default_config(
         scale=1.0,
         tolerance="production",
-        hand=Hand.RIGHT if args.hand == "right" else Hand.LEFT,
+        hand=Hand.RIGHT,
         gear_json_path=gear_paths.json_path,
         config_dir=gear_paths.config_dir,
     )
@@ -235,7 +241,7 @@ def main():
     )
 
     print(
-        f"Building marking template ({args.hand} hand, gear {args.gear}, "
+        f"Building marking template (gear {args.gear}, "
         f"plate {args.plate_thickness}mm, flange {args.wall_thickness}mm)..."
     )
     template = build_marking_template(
@@ -243,7 +249,7 @@ def main():
         flex=not args.no_flex, web=args.web, mark_dia=args.mark_dia,
     )
 
-    base = OUT / f"marking_template_{args.hand}"
+    base = OUT / "marking_template"
     if args.format in ("step", "both"):
         export_step(template, str(base.with_suffix(".step")))
         print(f"Exported: {base.with_suffix('.step')}")
