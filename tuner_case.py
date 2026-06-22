@@ -21,12 +21,14 @@ Design, in order of importance:
     cradle sat where the OTHER leaf's caps needed to go. (Verified by dropping
     the real assembly STEPs in and measuring interference.)
 
-  * CRADLES: each gang sits in a snug, REMOVABLE, feature-based cradle (a body
-    channel + five ring-eyelet relief lobes + an open button slot) at ~0.4 mm
-    clearance -- NOT a literal negative (which would have undercuts that trap the
-    part). Every cradle opens straight UP so the gang lifts out vertically. The
-    two button columns sit at the leaf centre +-GANG_D with the bodies splaying
-    outward, ring eyelets toward the side walls.
+  * CRADLES: each gang sits in a REMOVABLE, feature-based cradle (a body channel
+    + five ring-eyelet relief lobes) at 0.5 mm clearance -- a clearance tray, NOT
+    a literal negative (which would have undercuts that trap the part). Every
+    cradle opens straight UP so the gang lifts out vertically; the gang is a
+    clearance fit located to 0.5 mm and held down by the closed lid (the eyelet
+    tops meet the lid face, limiting lift to ~0.5 mm). The two button columns sit
+    at the leaf centre +-GANG_D with the bodies splaying outward, ring eyelets
+    toward the side walls.
 
   * HINGE: a piano hinge from the `pip-hinge` library (Knuckle.SMALL), the only
     thing joining the two leaves; it prints in place. SMALL keeps the knuckle to
@@ -83,40 +85,58 @@ from build123d import (  # noqa: E402
     Compound,
     Cylinder,
     Part,
+    Text,
     export_step,
     export_stl,
+    extrude,
 )
 
 from pip_hinge import HingeParams, Knuckle, make_hinge  # noqa: E402
 
 
 # ===========================================================================
-# Gang feature geometry (measured from assembly_5gang_rh.step).
+# Gang feature geometry (measured as the top-down shadow of the real gang STEP,
+# assembly_5gang_rh.step, via stacked Z-sections -- not nominal spec numbers).
 #
-# Gang frame: mounting plate at Z~=0; the worm turn-button CAPS project UP to
+# Gang frame: mounting plate at Z~=0; the string-post CAPS project UP to
 # Z=+POST_TOP in a column at X=POST_X; everything else (housings, worm drums,
-# ring eyelets) hangs BELOW the plate to Z=-BODY_BOTTOM. Body footprint in X is
-# [BODY_XMIN, BODY_XMAX] with the ring eyelets reaching out to BUTTON_XMAX. The
-# LH gang is the mirror across X. Only the button caps cross the closed seam.
+# ring eyelets) hangs BELOW the plate to Z=-BODY_BOTTOM. In plan the gang is a
+# narrow SPINE (X = POST_X +- SPINE_HALF, ~10 mm wide) running the full length,
+# bulging at five worm STATIONS out to STATION_XOUT and in to STATION_XIN over an
+# 8.5 mm Y band. The LH gang is the mirror across X. Only the post caps cross the
+# closed seam.
 # ===========================================================================
-HOUSING_Y = (18.1, 45.3, 72.5, 99.7, 126.9)   # five housing centres along Y
 GANG_LEN = 145.0                               # gang length (Y)
 
-POST_X = 20.0           # worm turn-button column X (gang-local); the cradle and
+POST_X = 20.0           # string-post column X (gang-local); the cradle spine and
 #                         the lid receiver holes both key off this column
-POST_OD = 6.0           # button stem Ø
-POST_TOP = 6.5          # button caps rise this far above the plate (+Z)
+POST_OD = 6.0           # string-post stem Ø
+POST_TOP = 6.5          # post caps rise this far above the plate (+Z)
 
-BUTTON_Y = (15.0, 42.2, 69.4, 96.6, 123.8)     # button-cap centres in Y (local)
-BUTTON_CAP_D = 7.5                             # button-cap Ø (what projects up)
+BUTTON_Y = (15.0, 42.2, 69.4, 96.6, 123.8)     # post-cap centres in Y (local)
+BUTTON_CAP_D = 7.5                             # post-cap Ø (what projects up)
 
-BODY_XMIN = 13.0        # frame body min X (housing outer wall)
-BODY_XMAX = 30.7        # frame body max X (worm-entry wall)
-BUTTON_XMAX = 43.0      # ring-eyelet outer X (sets cradle relief width)
-BUTTON_OD = 9.8         # ring/relief Ø (sets relief-lobe Y width)
+# Cradle silhouette (measured shadow). Spine = POST_X +- SPINE_HALF for the whole
+# length; at each STATION_Y the worm turn-button assembly widens the footprint to
+# [STATION_XIN, STATION_XOUT] over +-STATION_HALF_Y in Y.
+SPINE_HALF = 5.0                                   # spine half-width (X)
+STATION_Y = (21.25, 48.25, 75.75, 102.75, 130.25)  # bump centres (gang-local Y)
+STATION_HALF_Y = 4.25                              # half the 8.5 mm bump (Y)
+STATION_XIN = 13.05                                # station inboard reach (X)
+STATION_XOUT = 42.88                               # station outboard reach (X)
+
+BUTTON_XMAX = 43.0      # outermost gang feature X; sets leaf depth in build_case
 BODY_BOTTOM = 11.25     # body hangs this far below the plate (-Z)
 
-GANG_CLR = 0.4          # snug clearance added around every gang feature
+GANG_CLR = 0.7          # clearance added around every gang feature (loose drop-in)
+
+MIN_WALL = 1.2          # minimum internal land between adjacent pockets (~3 FDM
+#                         perimeters @ 0.4 mm nozzle); pocket spacing keys off this
+
+# L/R engraving: shallow letters cut into the leaf top (z = WALL_H) beside each
+# gang cradle and each spare row, so the handed parts go in the right place.
+ENGRAVE_DEPTH = 0.6     # how deep the letters are cut into the top face
+ENGRAVE_FONT = "Liberation Sans"
 
 
 # ===========================================================================
@@ -225,36 +245,35 @@ def _gang_pocket(leaf: Part, x_sign: int, post_x_leaf: float, floor_top: float,
         cuts.append(c)
 
     # gang-local X offsets relative to the post row (POST_X = 20):
-    body_lo = (BODY_XMIN - POST_X)      # -7.0
-    body_hi = (BODY_XMAX - POST_X)      # +10.7
-    btn_hi = (BUTTON_XMAX - POST_X)     # +23.0
-    post_half = POST_OD / 2 + GANG_CLR
+    spine_lo = -(SPINE_HALF + GANG_CLR)             # -5.5
+    spine_hi = +(SPINE_HALF + GANG_CLR)             # +5.5
+    st_lo = (STATION_XIN - POST_X) - GANG_CLR       # -7.45
+    st_hi = (STATION_XOUT - POST_X) + GANG_CLR      # +23.38
 
     y0 = GANG_Y0
     y1 = GANG_Y0 + GANG_LEN
 
-    # --- Main body channel: the frame housings + worm-entry block. Snug in X
-    #     to the body silhouette (not the full button width), full gang length.
-    #     Compute the two body edges in leaf X explicitly (x_sign handles the
-    #     LH mirror).
-    e1 = post_x_leaf + x_sign * (body_lo - GANG_CLR)
-    e2 = post_x_leaf + x_sign * (body_hi + GANG_CLR)
+    # --- Spine channel: the narrow body run that exists for the WHOLE length,
+    #     hugging the ~10 mm spine (POST_X +- SPINE_HALF) with GANG_CLR each side.
+    #     x_sign handles the LH mirror.
+    e1 = post_x_leaf + x_sign * spine_lo
+    e2 = post_x_leaf + x_sign * spine_hi
     box_cut(min(e1, e2), max(e1, e2), y0 - GANG_CLR, y1 + GANG_CLR)
 
-    # --- Worm-button relief lobes: five pockets on the button side, each at a
-    #     housing centre, reaching out to the button cap. Buttons hang in the
-    #     lower (below-plate) band, so these are full body-depth too.
-    bl1 = post_x_leaf + x_sign * (body_hi + GANG_CLR)
-    bl2 = post_x_leaf + x_sign * (btn_hi + GANG_CLR)
-    for yc in HOUSING_Y:
-        ylo = GANG_Y0 + yc - BUTTON_OD / 2 - GANG_CLR
-        yhi = GANG_Y0 + yc + BUTTON_OD / 2 + GANG_CLR
-        box_cut(min(bl1, bl2), max(bl1, bl2), ylo, yhi)
+    # --- Five station pockets: at each worm turn-button station the footprint
+    #     bulges out to STATION_XOUT and in to STATION_XIN over an 8.5 mm Y band.
+    #     Cut the full inboard..outboard span there; between stations only the
+    #     spine remains, so the cradle hugs the real silhouette (no fat channel,
+    #     no misaligned relief lobe).
+    s1 = post_x_leaf + x_sign * st_lo
+    s2 = post_x_leaf + x_sign * st_hi
+    for yc in STATION_Y:
+        ylo = GANG_Y0 + yc - STATION_HALF_Y - GANG_CLR
+        yhi = GANG_Y0 + yc + STATION_HALF_Y + GANG_CLR
+        box_cut(min(s1, s2), max(s1, s2), ylo, yhi)
 
-    # --- Post slot: a narrow channel over the post row so the plate is captured
-    #     by ledges on each side but the posts project freely up to the seam.
-    box_cut(post_x_leaf - post_half, post_x_leaf + post_half,
-            y0 - GANG_CLR, y1 + GANG_CLR)
+    # NB: the string-post column sits inside the spine channel above, so the
+    # posts/caps project freely up to the seam with no extra cut needed.
 
     for c in cuts:
         leaf = leaf - c
@@ -278,8 +297,10 @@ def _spare_pockets(leaf: Part, x_in_min: float, floor_top: float,
     # (length-X, width-Y, depth-Z) per spare, laid hinge-side -> front along X.
     spares = (SPARE_PEG, SPARE_POST, SPARE_WHEEL)
     gang_end = GANG_Y0 + GANG_LEN              # +72.5: gang extent toward +Y
+    # The gang cradle reaches gang_end + GANG_CLR; hold the spare row off by at
+    # least MIN_WALL so the land between them isn't a thin fin.
     for y_sign in (-1, +1):
-        y_near = y_sign * (gang_end + 1.5)     # gang-side edge of the band
+        y_near = y_sign * (gang_end + GANG_CLR + MIN_WALL)   # gang-side band edge
         x = x_in_min + 2.0                     # small inset from the wall
         for ln, wd, dp in spares:
             w_x = ln + SPARE_CLR
@@ -291,6 +312,38 @@ def _spare_pockets(leaf: Part, x_in_min: float, floor_top: float,
             cut = cut.translate((x, min(y_a, y_b), wall_h + 1.0))
             leaf = leaf - cut
             x += w_x + SPARE_GAP
+    return leaf
+
+
+# ---------------------------------------------------------------------------
+# L/R orientation engraving.
+# ---------------------------------------------------------------------------
+def _engrave_labels(leaf: Part, lh_bx: float, rh_bx: float, x_in_min: float,
+                    x_in_max: float, wall_h: float) -> Part:
+    """Engrave 'L'/'R' into the base top beside each gang cradle and spare row.
+
+    The LH gang sits on the hinge side (low X), the RH gang on the front side
+    (high X); the two spare rows sit at the -Y (L) and +Y (R) ends. Letters are
+    placed on the solid lands between pockets, in a between-station Y gap, and cut
+    ENGRAVE_DEPTH into the top face (z = wall_h) so they read from above.
+    """
+    lh_inner = lh_bx - (SPINE_HALF + GANG_CLR)   # LH spine edge toward the hinge
+    rh_outer = rh_bx + (SPINE_HALF + GANG_CLR)   # RH spine edge toward the front
+    y_mid = GANG_Y0 + (STATION_Y[1] + STATION_Y[2]) / 2.0   # clear between stations
+
+    # (char, x, y, height)
+    labels = [
+        ("L", (x_in_min + lh_inner) / 2.0, y_mid, 9.0),   # beside LH gang
+        ("R", (rh_outer + x_in_max) / 2.0, y_mid, 9.0),   # beside RH gang
+        ("L", x_in_max - 6.0, -80.0, 7.0),                # -Y spare row
+        ("R", x_in_max - 6.0, +80.0, 7.0),                # +Y spare row
+    ]
+    for ch, x, y, h in labels:
+        sk = Text(ch, font_size=h, font=ENGRAVE_FONT,
+                  align=(Align.CENTER, Align.CENTER))
+        cutter = extrude(sk, amount=ENGRAVE_DEPTH)
+        cutter = cutter.translate((x, y, wall_h - ENGRAVE_DEPTH))
+        leaf = leaf - cutter
     return leaf
 
 
@@ -409,6 +462,8 @@ def build_case():
     base = _gang_pocket(base, +1, rh_bx, FLOOR_T, WALL_H)   # RH: body on +X
     base = _gang_pocket(base, -1, lh_bx, FLOOR_T, WALL_H)   # LH: body on -X
     base = _spare_pockets(base, leaf_outer + WALL_T, FLOOR_T, WALL_H)  # end spares
+    base = _engrave_labels(base, lh_bx, rh_bx, leaf_outer + WALL_T,
+                           leaf_outer + leaf_depth - WALL_T, WALL_H)   # L/R labels
 
     # ----- LID leaf: plain cover with the ten button-cap receiver holes.
     # Each hole sits at lid X = -(base button X) so it lands on its cap after
