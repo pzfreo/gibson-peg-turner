@@ -155,16 +155,18 @@ RECV_D = BUTTON_CAP_D + 1.0    # Ø8.5: 0.5 mm radial clearance round the cap
 RECV_DEPTH = POST_TOP + 1.0    # 7.5 mm deep blind holes from the seam face
 
 # Spare-part pockets: TWO each of peg, post and wheel ship per set. The parts are
-# too tall to stand in the ~13 mm cavity, so one of each lies on its side (axis
-# along Y) in each of the two Y-end margins, opening UP and capped flat by the
-# lid when the book shuts -- the same top-opening box pockets as the gang cradles.
-SPARE_PEG_D = 12.5     # button/worm peg: the ring OD is the widest part
-SPARE_PEG_L = 16.0
-SPARE_POST_D = 7.5     # string post: the cap OD is the widest part
-SPARE_POST_L = 14.8
-SPARE_WHEEL_D = 7.6    # worm-wheel disc
-SPARE_WHEEL_L = 7.7
-SPARE_CLR = 0.5        # clearance around each spare
+# too tall to stand in the ~13 mm cavity, so one of each lies on its side, axis
+# along X (the 28 mm peg won't lie across the ~19 mm end band), in a row in each
+# Y-end margin. They open UP and are capped flat by the solid lid when the book
+# shuts. Pocket sizes are the MEASURED bounding box of the real mk2 part STEPs
+# (sent/fixedv2/senttomeicy/*.step), each laid longest-axis along X with its
+# shortest dimension vertical to minimise depth -- NOT nominal spec numbers.
+#                  (length_X, width_Y, depth_Z)  -- measured part bbox, mm
+SPARE_PEG = (28.03, 12.50, 8.50)     # peg_head_rh.step (full length incl. worm)
+SPARE_POST = (14.80, 7.50, 7.50)     # string_post.step
+SPARE_WHEEL = (7.70, 7.60, 7.57)     # wheel_rh.step
+SPARE_CLR = 0.5        # clearance added around each spare
+SPARE_GAP = 3.0        # divider land between adjacent spare pockets
 
 # ---------------------------------------------------------------------------
 # Magnet catch (Ø6 x 3 disc magnets), pockets per pip-hinge clamshell example.
@@ -262,34 +264,33 @@ def _gang_pocket(leaf: Part, x_sign: int, post_x_leaf: float, floor_top: float,
 # ---------------------------------------------------------------------------
 # Spare-part end pockets.
 # ---------------------------------------------------------------------------
-def _spare_pockets(leaf: Part, xc: float, floor_top: float, wall_h: float) -> Part:
+def _spare_pockets(leaf: Part, x_in_min: float, floor_top: float,
+                   wall_h: float) -> Part:
     """Cut the spare-part pockets into the base leaf's two Y-end margins.
 
-    One peg, one post and one wheel lie on their sides (axis along Y) in each end
-    margin -- two of each across the set. Each is a box pocket cut down from the
-    rim, deep enough to capture the part between its floor and the closed lid, and
-    opening straight UP so the part lifts out vertically (like the gang cradles).
-    The three sit in a row across X, flush to the gang-side end and extending
-    outward toward the end wall.
+    One peg, one post and one wheel lie on their sides, axis along X, in a row in
+    each end margin -- two of each across the set. Each is a box pocket cut down
+    from the rim, deep enough to capture the part between its floor and the closed
+    lid, opening straight UP so it lifts out vertically (like the gang cradles).
+    The row starts a little inboard of the hinge-side wall (`x_in_min` is the leaf
+    interior min X) and the parts are flush to the gang-side edge of the band.
     """
-    # (diameter, length, x-offset from the leaf interior centre) per spare.
-    spares = (
-        (SPARE_PEG_D, SPARE_PEG_L, -20.0),
-        (SPARE_POST_D, SPARE_POST_L, -2.0),
-        (SPARE_WHEEL_D, SPARE_WHEEL_L, 14.0),
-    )
+    # (length-X, width-Y, depth-Z) per spare, laid hinge-side -> front along X.
+    spares = (SPARE_PEG, SPARE_POST, SPARE_WHEEL)
     gang_end = GANG_Y0 + GANG_LEN              # +72.5: gang extent toward +Y
     for y_sign in (-1, +1):
-        y_inner = y_sign * (gang_end + 1.5)    # 1.5 mm clear of the gang end
-        for d, ln, xoff in spares:
-            w = d + SPARE_CLR
-            depth = d + SPARE_CLR              # pocket floor = wall_h - depth
-            length = ln + SPARE_CLR
-            y_a, y_b = y_inner, y_inner + y_sign * length
-            cut = Box(w, abs(y_b - y_a), depth + 1.0,
-                      align=(Align.CENTER, Align.MIN, Align.MAX))
-            cut = cut.translate((xc + xoff, min(y_a, y_b), wall_h + 1.0))
+        y_near = y_sign * (gang_end + 1.5)     # gang-side edge of the band
+        x = x_in_min + 2.0                     # small inset from the wall
+        for ln, wd, dp in spares:
+            w_x = ln + SPARE_CLR
+            w_y = wd + SPARE_CLR
+            depth = dp + SPARE_CLR             # pocket floor = wall_h - depth
+            y_a, y_b = y_near, y_near + y_sign * w_y
+            cut = Box(w_x, abs(y_b - y_a), depth + 1.0,
+                      align=(Align.MIN, Align.MIN, Align.MAX))
+            cut = cut.translate((x, min(y_a, y_b), wall_h + 1.0))
             leaf = leaf - cut
+            x += w_x + SPARE_GAP
     return leaf
 
 
@@ -407,7 +408,7 @@ def build_case():
     base = solid_leaf(+1, leaf_outer, leaf_depth, leaf_w, WALL_H)
     base = _gang_pocket(base, +1, rh_bx, FLOOR_T, WALL_H)   # RH: body on +X
     base = _gang_pocket(base, -1, lh_bx, FLOOR_T, WALL_H)   # LH: body on -X
-    base = _spare_pockets(base, xc, FLOOR_T, WALL_H)        # spares in end margins
+    base = _spare_pockets(base, leaf_outer + WALL_T, FLOOR_T, WALL_H)  # end spares
 
     # ----- LID leaf: plain cover with the ten button-cap receiver holes.
     # Each hole sits at lid X = -(base button X) so it lands on its cap after
