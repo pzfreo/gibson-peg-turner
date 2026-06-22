@@ -17,6 +17,7 @@ Usage:
 """
 
 import argparse
+import math
 import os
 import sys
 from dataclasses import replace
@@ -45,9 +46,51 @@ from gib_tuners.config.defaults import (  # noqa: E402
 from gib_tuners.config.parameters import Hand  # noqa: E402
 
 
-def build_marking_template(config, plate_thickness: float, wall_thickness: float) -> Part:
-    """Top plate + the peg-entry side flange. Only the mounting holes are kept:
-    the string-post holes (top plate) and the peg-entry holes (wall) are plugged.
+def _add_flex_gaps(frame, config, plate_top: float, web: float):
+    """Cut 45 degree V-notches from the TOP face only into the 4 gaps between
+    stations, forming a printable living hinge so the jig can flex to a curved
+    headstock. With all notches on the top, the thin web sits at the bottom
+    (contact) face, so that face keeps its length when bent and the marked hole
+    spacing stays correct. Notches span the full width; printed upside-down
+    (plate top on the bed) the <=45 degree walls need no supports. Notches may
+    cross the marking holes -- that is fine.
+    """
+    fp = config.frame
+    scale = config.scale
+    wall = fp.wall_thickness * scale
+    box_outer = fp.box_outer * scale
+    hl = fp.housing_length * scale
+    hcs = [c * scale for c in fp.housing_centers]
+
+    thickness = plate_top + wall          # plate thickness in the gaps
+    want_depth = thickness - web          # cut depth that leaves `web` at apex
+    margin = 0.5                          # keep notches off the housings
+
+    def notch(y, depth):
+        diag = depth * math.sqrt(2)       # square side -> 45 deg V of this depth
+        cut = Box(box_outer + 4, diag, diag).rotate(Axis.X, 45)
+        return cut.locate(Location((0, y, plate_top)))
+
+    for i in range(len(hcs) - 1):
+        g0, g1 = hcs[i] + hl / 2 + margin, hcs[i + 1] - hl / 2 - margin
+        width = g1 - g0
+        if width < 1.0:
+            continue
+        n = max(1, int(width // (2 * want_depth)))   # notches that fit
+        depth = min(want_depth, width / (2 * n) - 0.05)
+        for k in range(n):
+            yc = g0 + width * (k + 0.5) / n
+            frame = frame - notch(yc, depth)
+    return frame
+
+
+def build_marking_template(
+    config, plate_thickness: float, wall_thickness: float,
+    flex: bool = True, web: float = 0.6, mark_dia: float = 1.0,
+) -> Part:
+    """Top plate + the peg-entry side flange. The string-post, peg-entry and the
+    full-size mounting holes are all plugged; a small `mark_dia` centre-marking
+    hole is drilled at each mounting position instead.
     The opposite bearing-side wall, bottom wall and inner cavity are gone.
 
     For print strength the plate is thickened upward and the side wall is built
@@ -98,6 +141,12 @@ def build_marking_template(config, plate_thickness: float, wall_thickness: float
         worm_plug = worm_plug.locate(Location((wall_x, hc + effective_cd / 2, worm_z)))
         frame = frame + worm_plug
 
+    # Plug the full-size mounting holes; a small marking hole replaces them later.
+    mount_plug_r = config.with_tolerance(fp.mounting_hole) * scale / 2 + 0.1
+    for y_pos in (p * scale for p in fp.mounting_hole_positions):
+        mplug = Cylinder(mount_plug_r, wall, align=(Align.CENTER, Align.CENTER, Align.CENTER))
+        frame = frame + mplug.locate(Location((0, y_pos, -wall / 2)))
+
     plate_top_z = (-wall + plate_thickness) if plate_thickness > wall else 0.0
 
     # Build out the side wall, one thickened flange per housing (the gaps between
@@ -118,8 +167,7 @@ def build_marking_template(config, plate_thickness: float, wall_thickness: float
             )
             frame = frame + flange
 
-    # Thicken the top plate upward (bottom face stays the datum), then re-drill
-    # the mounting holes through the full new thickness so they stay open.
+    # Thicken the top plate upward (bottom face stays the datum).
     if plate_thickness > wall:
         buildup = Box(
             box_outer, total_length, plate_thickness - wall,
@@ -127,14 +175,18 @@ def build_marking_template(config, plate_thickness: float, wall_thickness: float
         )
         frame = frame + buildup.locate(Location((0, 0, 0)))
 
-        mount_r = config.with_tolerance(fp.mounting_hole) * scale / 2
-        for y_pos in (p * scale for p in fp.mounting_hole_positions):
-            drill = Cylinder(
-                mount_r, plate_thickness + 0.4,
-                align=(Align.CENTER, Align.CENTER, Align.MIN),
-            )
-            drill = drill.locate(Location((0, y_pos, -wall - 0.2)))
-            frame = frame - drill
+    # Drill the small centre-marking holes through the full plate thickness.
+    mark_r = mark_dia * scale / 2
+    full_thickness = plate_top_z + wall
+    for y_pos in (p * scale for p in fp.mounting_hole_positions):
+        drill = Cylinder(
+            mark_r, full_thickness + 0.4,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+        frame = frame - drill.locate(Location((0, y_pos, -wall - 0.2)))
+
+    if flex:
+        frame = _add_flex_gaps(frame, config, plate_top_z, web)
 
     return frame
 
@@ -153,6 +205,18 @@ def main():
     parser.add_argument(
         "--wall-thickness", type=float, default=2.0,
         help="Side flange thickness in mm, built outward from the frame's 1.1mm (default: 2.0)",
+    )
+    parser.add_argument(
+        "--no-flex", action="store_true",
+        help="Disable the zigzag flex notches in the inter-station gaps",
+    )
+    parser.add_argument(
+        "--web", type=float, default=0.6,
+        help="Remaining web thickness at the flex-notch apex in mm (default: 0.6)",
+    )
+    parser.add_argument(
+        "--mark-dia", type=float, default=1.0,
+        help="Centre-marking hole diameter at each mounting position in mm (default: 1.0)",
     )
     args = parser.parse_args()
 
@@ -174,7 +238,10 @@ def main():
         f"Building marking template ({args.hand} hand, gear {args.gear}, "
         f"plate {args.plate_thickness}mm, flange {args.wall_thickness}mm)..."
     )
-    template = build_marking_template(config, args.plate_thickness, args.wall_thickness)
+    template = build_marking_template(
+        config, args.plate_thickness, args.wall_thickness,
+        flex=not args.no_flex, web=args.web, mark_dia=args.mark_dia,
+    )
 
     base = OUT / f"marking_template_{args.hand}"
     if args.format in ("step", "both"):
