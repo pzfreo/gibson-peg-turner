@@ -157,7 +157,9 @@ FLOOR_T = 2.0           # floor thickness under the gang cradle
 PIVOT_Z_OFFSET = 0.2    # HingeParams default; lifts the seam 2*0.2 mm
 
 STATIONS = 8            # piano-hinge tab count (even); clasp_width=hinge_len/8
-PIVOT_CLEARANCE = 0.45  # radial pin/bore gap (FDM-tuned; pip default 0.6)
+PIVOT_CLEARANCE = 0.6   # radial pin/bore gap (pip default). 0.45 fused the pin
+#                         to the bore at 0.2 mm layers and cracked the knuckles
+#                         on the first fold; 0.6 frees cleanly.
 
 # Two gangs in the base: button columns at the leaf centre +-GANG_D, bodies
 # splaying outward (ring eyelets toward the side walls). The central divider
