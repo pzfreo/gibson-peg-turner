@@ -56,6 +56,14 @@ SHELL_WALL = 3.0     # clamshell wall AND floor thickness (mm)
 FOAM_T = 10.0        # foam thickness ABOVE and BELOW the insert (mm); 1 cm start
 SLIDE_CLR = 0.4      # X/Y slide clearance between the insert and the shell bore
 
+# Hinge feel (both are HingeParams knobs; defaults printed too stiff).
+HINGE_PIVOT_CLR = 0.7        # radial pin/bore gap. 0.6 freed the cracking but was
+#                              still hard to rotate; 0.7 spins freely (don't exceed
+#                              ~0.8 or the pin goes sloppy).
+HINGE_MOUNTING_FLAT = 1.0    # running gap between the knuckle barrel and the leaf
+#                              wall = how far apart the two halves sit. The pip
+#                              default 0.5 let the barrels rub the sides; 1.0 clears.
+
 # ---------------------------------------------------------------------------
 # Insert footprint -- reuses the gang cradle layout from tuner_case so the part
 # fit is byte-for-byte the validated one. The insert is a solid slab the height
@@ -152,7 +160,8 @@ def build_shell(foam_t: float = FOAM_T):
 
     params = HingeParams(case_h=case_h, hinge_length=hinge_length,
                          stations=tc.STATIONS, knuckle=Knuckle.SMALL,
-                         pivot_clearance=tc.PIVOT_CLEARANCE)
+                         pivot_clearance=HINGE_PIVOT_CLR,
+                         mounting_flat=HINGE_MOUNTING_FLAT)
     leaf_outer = params._resolve()["W"]
 
     base = _shell_leaf(+1, leaf_outer, leaf_depth, leaf_w, h_int, SHELL_WALL)
