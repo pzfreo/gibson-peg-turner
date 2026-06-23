@@ -1,0 +1,34 @@
+# Gibson Peg Turner — FDM print plate for Bambu Lab P1S
+
+[pipeline]
+stages = ["load", "arrange", "plate", "slice"]
+
+[plate]
+size = [256, 256]
+padding = 5.0
+
+[slicer]
+engine = "orca"
+printer = "Bambu Lab P1S 0.4 nozzle"
+process = "0.20mm Standard @BBL X1C"
+[slicer.overrides]
+brim_type = "outer_only"
+brim_width = "5"
+
+[[parts]]
+file = "socket_body.step"
+copies = 1
+rotate = [180, 0, 0]  # flip so arm is on bed, pocket faces up
+filament = "Generic PETG-CF @base"
+
+[[parts]]
+file = "handle_knob.step"
+copies = 1
+rotate = [180, 0, 0]
+filament = "Generic PETG-CF @base"
+
+[[parts]]
+file = "retaining_washer.step"
+copies = 1
+rotate = [180, 0, 0]
+filament = "Generic PETG-CF @base"
