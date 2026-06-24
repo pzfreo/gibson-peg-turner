@@ -53,7 +53,7 @@ OUT = Path(__file__).resolve().parent
 # New parameters for this design.
 # ===========================================================================
 SHELL_WALL = 3.0     # clamshell wall AND floor thickness (mm)
-FOAM_T = 10.0        # foam thickness ABOVE and BELOW the insert (mm); 1 cm start
+FOAM_T = 5.0         # foam thickness ABOVE and BELOW the insert (mm)
 SLIDE_CLR = 0.4      # X/Y slide clearance between the insert and the shell bore
 
 # Hinge feel (both are HingeParams knobs; defaults printed too stiff).
