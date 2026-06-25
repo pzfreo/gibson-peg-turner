@@ -53,7 +53,13 @@ OUT = Path(__file__).resolve().parent
 # New parameters for this design.
 # ===========================================================================
 SHELL_WALL = 3.0     # clamshell wall AND floor thickness (mm)
-FOAM_T = 5.0         # foam thickness ABOVE and BELOW the insert (mm)
+FOAM_T = 10.0        # foam thickness ABOVE and BELOW the insert (mm)
+# Closing clearance. A cavity of EXACTLY gang + 2*foam has zero margin: real foam
+# is never exactly nominal and barely compresses by hand, so the stack overfills
+# and the lid won't seat the last few degrees. This headroom lets it shut with
+# the foam lightly loaded. Bump it if your foam is thick/stiff; for a firm preload
+# instead, drop it and use foam a hair thicker than FOAM_T.
+CLOSE_CLR = 4.0
 SLIDE_CLR = 0.4      # X/Y slide clearance between the insert and the shell bore
 
 # Hinge feel (both are HingeParams knobs; defaults printed too stiff).
@@ -150,7 +156,7 @@ def build_shell(foam_t: float = FOAM_T):
     """Two print-in-place clamshell leaves sized for insert + 2*foam_t in Z."""
     cavity_x = INSERT_DEPTH + 2 * SLIDE_CLR
     cavity_y = INSERT_WIDTH + 2 * SLIDE_CLR
-    cavity_z = STACK_H + 2 * foam_t          # foam / insert / foam sandwich (Z)
+    cavity_z = STACK_H + 2 * foam_t + CLOSE_CLR   # foam/insert/foam + closing headroom
     h_int = cavity_z / 2.0                    # symmetric clamshell: each leaf half
     leaf_depth = cavity_x + 2 * SHELL_WALL
     leaf_w = cavity_y + 2 * SHELL_WALL
