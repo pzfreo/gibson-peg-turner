@@ -53,7 +53,8 @@ OUT = Path(__file__).resolve().parent
 # New parameters for this design.
 # ===========================================================================
 SHELL_WALL = 3.0     # clamshell wall AND floor thickness (mm)
-FOAM_T = 5.0         # foam thickness ABOVE and BELOW the insert (mm)
+FOAM_T = 5.0         # foam thickness ABOVE and BELOW the insert (mm); zero Z margin
+#                      by design so the foam grips the tuners top and bottom
 SLIDE_CLR = 0.4      # X/Y slide clearance between the insert and the shell bore
 
 # Hinge feel (both are HingeParams knobs; defaults printed too stiff).
@@ -97,9 +98,8 @@ def build_insert() -> Part:
     insert = _spare_pockets(insert, 0.0, tc.FLOOR_T, INSERT_H)       # end spares (floored)
     insert = _engrave_labels(insert, lh_bx, rh_bx, 0.0, INSERT_DEPTH, INSERT_H)
 
-    # Clear the shell's two FRONT-corner magnet bosses: they poke into the cavity
-    # by (BOSS_R + BOSS_R/sqrt2) from each wall, so notch that corner out of the
-    # insert (empty slab here -- no cradle/spare features reach the far corners).
+    # Clear the shell's two FRONT-corner magnet bosses: at closed they poke in by
+    # (BOSS_R + BOSS_R/sqrt2), so notch that corner out (empty slab here).
     notch = tc.BOSS_R + tc.BOSS_R / math.sqrt(2) + 0.5
     for y_sign in (-1, +1):
         ny = (INSERT_WIDTH / 2 - notch) if y_sign > 0 else (-INSERT_WIDTH / 2)
@@ -107,6 +107,20 @@ def build_insert() -> Part:
                   align=(Align.MIN, Align.MIN, Align.MIN)).translate(
                       (INSERT_DEPTH - notch, ny, -1.0))
         insert = insert - cut
+
+    # The insert rides up on the bottom foam and protrudes ~6 mm above the closed
+    # seam into the lid. During the last few degrees of closure the lid's FRONT
+    # wall tilts inward and pinches the insert's front-top edge (~0.18 mm) -- which
+    # fouls on a real print. Relieve the FRONT face above the seam (insert-local
+    # z = STACK_H/2 = 8.875, independent of foam) so the protruding part clears the
+    # swinging wall; below the seam it stays full size and located, and Z/foam is
+    # untouched. Front rim is EDGE_CLR (2.5 mm) so FRONT_RELIEF leaves a wall.
+    FRONT_RELIEF = 1.5
+    seam_local_z = STACK_H / 2.0 - 1.0          # start just below the seam
+    relief = Box(FRONT_RELIEF + 1.0, INSERT_WIDTH + 2.0, INSERT_H - seam_local_z + 1.0,
+                 align=(Align.MIN, Align.CENTER, Align.MIN)).translate(
+                     (INSERT_DEPTH - FRONT_RELIEF, 0, seam_local_z))
+    insert = insert - relief
     return insert
 
 
