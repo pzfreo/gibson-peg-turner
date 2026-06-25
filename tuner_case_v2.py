@@ -42,9 +42,16 @@ from build123d import (  # noqa: E402
     Box,
     Compound,
     Cylinder,
+    FontStyle,
     Part,
+    Plane,
+    Pos,
+    Rot,
+    Text,
     export_step,
     export_stl,
+    extrude,
+    mirror,
 )
 
 OUT = Path(__file__).resolve().parent
@@ -64,6 +71,27 @@ HINGE_PIVOT_CLR = 0.7        # radial pin/bore gap. 0.6 freed the cracking but w
 HINGE_MOUNTING_FLAT = 1.0    # running gap between the knuckle barrel and the leaf
 #                              wall = how far apart the two halves sit. The pip
 #                              default 0.5 let the barrels rub the sides; 1.0 clears.
+HINGE_CLASP_CLR = 0.6        # axial clasp clearance; the gap between adjacent
+#                              knuckles is half this, so 0.6 -> 0.3 mm (the auto
+#                              0.345 gave only 0.17 mm, tight enough to print fused).
+
+# Front-cover logo: a script-font name recessed into the LID's outer face,
+# lifted from the gramel case. The lid prints floor-down, so the cover face sits
+# on the bed; the recess is cut with a cascading V-taper (steepest first, with a
+# fallback chain) so it stays self-supporting. (Mrs Saint Delafield = the Chelli
+# Strings branding.)
+LOGO_TEXT = "Chelli Strings"
+LOGO_SIZE = 11.0                                   # font size (mm)
+LOGO_DEPTH = 0.8                                   # recess depth into the 3 mm floor
+LOGO_ROTATION = 0.0                               # CCW; 90 runs it along the long axis
+LOGO_FONT = OUT / "MrsSaintDelafield-Regular.ttf"
+LOGO_TAPER_ANGLES = (45, 30, 20, 10)
+
+# Instruction on the BASE leaf's outer (bottom) face, plain sans-serif.
+BASE_TEXT = "Open other side up"
+BASE_FONT = "Liberation Sans"
+BASE_SIZE = 7.0
+BASE_ROTATION = 0.0                               # run along the long axis
 
 # ---------------------------------------------------------------------------
 # Insert footprint -- reuses the gang cradle layout from tuner_case so the part
@@ -160,6 +188,39 @@ def _shell_magnets(leaf: Part, x_sign: int, leaf_outer: float, leaf_depth: float
     return leaf
 
 
+def _engrave_face(leaf: Part, x_centre: float, text: str, size: float,
+                  rotation: float, font_path=None, font_name=None) -> Part:
+    """Recess `text` into a leaf's OUTER face (its z=0 floor).
+
+    Both leaves print floor-down, so the outer face sits on the bed; the recess
+    is extruded UP into the floor with a self-supporting V-taper (steepest first,
+    fallback chain). The text is rotated and mirrored in X so it reads the right
+    way round on the finished case -- the lid's 180 deg fold and flipping the case
+    to read its base both negate X. Returns the leaf unchanged if `text` is empty.
+    """
+    if not text:
+        return leaf
+    if font_path is not None:
+        sk = Text(text, font_size=size, font_path=str(font_path),
+                  font_style=FontStyle.BOLD, align=(Align.CENTER, Align.CENTER))
+    else:
+        sk = Text(text, font_size=size, font=font_name,
+                  align=(Align.CENTER, Align.CENTER))
+    cutter = None
+    for taper in LOGO_TAPER_ANGLES:
+        try:
+            cutter = extrude(sk, LOGO_DEPTH, taper=taper)   # up into the floor from z=0
+            break
+        except Exception:
+            continue
+    if cutter is None:
+        cutter = extrude(sk, LOGO_DEPTH)
+    cutter = Rot(0, 0, rotation) * cutter
+    cutter = mirror(cutter, Plane.YZ)
+    cutter = Pos(x_centre, 0, 0) * cutter
+    return leaf - cutter
+
+
 def build_shell(foam_t: float = FOAM_T):
     """Two print-in-place clamshell leaves sized for insert + 2*foam_t in Z."""
     cavity_x = INSERT_DEPTH + 2 * SLIDE_CLR
@@ -175,13 +236,18 @@ def build_shell(foam_t: float = FOAM_T):
     params = HingeParams(case_h=case_h, hinge_length=hinge_length,
                          stations=tc.STATIONS, knuckle=Knuckle.SMALL,
                          pivot_clearance=HINGE_PIVOT_CLR,
-                         mounting_flat=HINGE_MOUNTING_FLAT)
+                         mounting_flat=HINGE_MOUNTING_FLAT,
+                         clasp_clearance=HINGE_CLASP_CLR)
     leaf_outer = params._resolve()["W"]
 
     base = _shell_leaf(+1, leaf_outer, leaf_depth, leaf_w, h_int, SHELL_WALL)
     lid = _shell_leaf(-1, leaf_outer, leaf_depth, leaf_w, h_int, SHELL_WALL)
     base = _shell_magnets(base, +1, leaf_outer, leaf_depth, leaf_w, h_total, SHELL_WALL)
     lid = _shell_magnets(lid, -1, leaf_outer, leaf_depth, leaf_w, h_total, SHELL_WALL)
+    lid = _engrave_face(lid, -(leaf_outer + leaf_depth / 2.0), LOGO_TEXT, LOGO_SIZE,
+                        LOGO_ROTATION, font_path=LOGO_FONT)          # front-cover logo
+    base = _engrave_face(base, leaf_outer + leaf_depth / 2.0, BASE_TEXT, BASE_SIZE,
+                         BASE_ROTATION, font_name=BASE_FONT)          # base bottom instruction
 
     cs, ps = _split_hinge_by_side(make_hinge(params))
     cs = cs.translate((0, 0, case_h))
