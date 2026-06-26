@@ -1,0 +1,23 @@
+[project]
+name = "gibson-peg-turner"
+version = "0.0.0"
+description = "3D-printable Gibson tuner kit: peg turner, frame marking template, and clamshell case"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "build123d>=0.10",
+    "pip-hinge>=0.1.0",
+]
+
+[project.optional-dependencies]
+# marking_template.py imports the frame geometry from the sibling gib-tuners-mk2
+# repo (its single source of truth). It drags in a heavy tree (trimesh,
+# ocp-vscode, ...), so it is opt-in: `uv sync --extra template`.
+template = ["gib-tuners"]
+dev = ["pytest>=7"]
+
+[tool.uv]
+# This repo is a set of build scripts, not an installable package.
+package = false
+
+[tool.uv.sources]
+gib-tuners = { path = "../gib-tuners-mk2", editable = true }
