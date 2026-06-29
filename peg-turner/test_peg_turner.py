@@ -7,8 +7,7 @@ from peg_turner import (
     build_socket_body,
     build_handle_knob,
     build_retaining_washer,
-    build_ghost_bolt,
-    build_ghost_heatset,
+    build_ghost_screw,
     # Parameters
     SLOT_WIDTH, SLOT_LENGTH, SLOT_DEPTH, SLOT_CHAMFER,
     TPU_WALL, TPU_SHORT, TPU_LONG, TPU_HEIGHT,
@@ -18,10 +17,11 @@ from peg_turner import (
     ARM_Z_BOTTOM, ARM_Z_TOP,
     ARM_BORE_DIA,
     POST_OD, POST_HEIGHT, FLANGE_DIA, FLANGE_HEIGHT,
-    HEATSET_DIA, HEATSET_DEPTH,
+    PILOT_DIA, PILOT_DEPTH,
     KNOB_OD, KNOB_HEIGHT,
     KNOB_Z_BOTTOM, KNOB_Z_TOP, POST_TIP_Z,
     WASHER_OD, WASHER_ID, WASHER_H, WASHER_CBORE_DIA, WASHER_CBORE_DEPTH,
+    M3_SHAFT_LEN,
 )
 
 TOL = 0.15  # mm — geometric tolerance for bounding box checks
@@ -64,15 +64,10 @@ def test_washer_builds(washer):
     assert washer is not None
     assert washer.volume > 0
 
-def test_ghost_bolt_builds():
-    bolt = build_ghost_bolt()
-    assert bolt is not None
-    assert bolt.volume > 0
-
-def test_ghost_heatset_builds():
-    hs = build_ghost_heatset()
-    assert hs is not None
-    assert hs.volume > 0
+def test_ghost_screw_builds():
+    screw = build_ghost_screw()
+    assert screw is not None
+    assert screw.volume > 0
 
 
 # ─── TPU Insert Dimensions ───────────────────────────
@@ -202,22 +197,28 @@ def test_washer_wider_than_bore():
     """Printed washer must be wider than arm bore for axial retention."""
     assert WASHER_OD > ARM_BORE_DIA
 
-def test_washer_bolt_clearance():
-    """Washer bore must clear M3 bolt shaft."""
+def test_washer_screw_clearance():
+    """Washer bore must clear the M3 screw shank."""
     assert WASHER_ID >= 3.0
 
 def test_post_longer_than_arm():
     """Post must protrude below arm for washer clearance."""
     assert POST_HEIGHT > ARM_HEIGHT
 
-def test_heatset_fits_in_post():
-    """Heat-set must fit within post OD."""
-    assert HEATSET_DIA < POST_OD
+def test_pilot_fits_in_post():
+    """Self-tapping pilot must fit within post OD."""
+    assert PILOT_DIA < POST_OD
 
-def test_heatset_fits_within_knob():
-    """Heat-set pocket must fit within total knob depth (post + flange + barrel)."""
+def test_pilot_fits_within_knob():
+    """Pilot hole must fit within total knob depth (post + flange + barrel)."""
     total_depth = POST_HEIGHT + FLANGE_HEIGHT + KNOB_HEIGHT
-    assert HEATSET_DEPTH < total_depth
+    assert PILOT_DEPTH < total_depth
+
+def test_screw_does_not_bottom_out():
+    """Screw engagement into the post must be shallower than the pilot depth
+    so the screw seats on the washer, not the pilot floor."""
+    engagement = M3_SHAFT_LEN - (WASHER_H - WASHER_CBORE_DEPTH)
+    assert engagement < PILOT_DEPTH, f"engagement={engagement} >= pilot {PILOT_DEPTH}"
 
 
 # ─── Wall Thickness Checks ───────────────────────────
@@ -230,9 +231,9 @@ def test_tpu_wall_minimum():
     """TPU wall around slot must be at least 2mm."""
     assert TPU_WALL >= 2.0
 
-def test_post_wall_around_heatset():
-    """Post wall around heat-set must be at least 1.5mm."""
-    wall = (POST_OD - HEATSET_DIA) / 2
+def test_post_wall_around_pilot():
+    """Post wall around the self-tapping pilot must be at least 1.5mm."""
+    wall = (POST_OD - PILOT_DIA) / 2
     assert wall >= 1.5, f"Post wall={wall}, need >=1.5mm"
 
 def test_washer_wall_minimum():
