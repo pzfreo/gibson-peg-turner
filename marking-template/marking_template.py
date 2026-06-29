@@ -27,10 +27,6 @@ from dataclasses import replace
 from pathlib import Path
 
 from build123d import Align, Axis, Box, Cylinder, Location, Part, export_step, export_stl
-
-# NOTE: resolve_gear_config() below needs gib-tuners' config/ data, which the
-# published package does not yet ship — see pzfreo/gib-tuners-mk2#99. Until that
-# lands, this script raises FileNotFoundError on the gear lookup.
 from gib_tuners.components.frame import create_frame
 from gib_tuners.config.defaults import (
     calculate_worm_z,
