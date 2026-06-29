@@ -12,9 +12,9 @@ the template is hand-agnostic: one part serves both left- and right-hand frames
 (the blank flange wall is cosmetic/structural and has no holes). It is built
 from the right-hand frame internally.
 
-The frame geometry is the single source of truth in the sibling `gib-tuners-mk2`
-repository; this script imports `create_frame()` from it so the template can
-never drift from the real frame.  Set GIB_TUNERS_MK2 to override the location.
+The frame geometry is the single source of truth in the `gib-tuners` package
+(github.com/pzfreo/gib-tuners-mk2); this script imports `create_frame()` from it
+so the template can never drift from the real frame.
 
 Usage:
     python marking_template.py                 # c13-10 gear
@@ -23,32 +23,23 @@ Usage:
 
 import argparse
 import math
-import os
-import sys
 from dataclasses import replace
 from pathlib import Path
 
-OUT = Path(__file__).parent
+from build123d import Align, Axis, Box, Cylinder, Location, Part, export_step, export_stl
 
-# --- Locate the sibling gib-tuners-mk2 repo (single source of truth) ---
-_mk2 = Path(os.environ.get("GIB_TUNERS_MK2", OUT.parent / "gib-tuners-mk2"))
-_mk2_src = _mk2 / "src"
-if not (_mk2_src / "gib_tuners").is_dir():
-    sys.exit(
-        f"Cannot find gib-tuners-mk2 at {_mk2}.\n"
-        "Clone it next to this repo, or set GIB_TUNERS_MK2 to its path."
-    )
-sys.path.insert(0, str(_mk2_src))
-
-from build123d import Align, Axis, Box, Cylinder, Location, Part, export_step, export_stl  # noqa: E402
-
-from gib_tuners.components.frame import create_frame  # noqa: E402
-from gib_tuners.config.defaults import (  # noqa: E402
+# NOTE: resolve_gear_config() below needs gib-tuners' config/ data, which the
+# published package does not yet ship — see pzfreo/gib-tuners-mk2#99. Until that
+# lands, this script raises FileNotFoundError on the gear lookup.
+from gib_tuners.components.frame import create_frame
+from gib_tuners.config.defaults import (
     calculate_worm_z,
     create_default_config,
     resolve_gear_config,
 )
-from gib_tuners.config.parameters import Hand  # noqa: E402
+from gib_tuners.config.parameters import Hand
+
+OUT = Path(__file__).parent
 
 
 def _add_flex_gaps(frame, config, plate_top: float, web: float):

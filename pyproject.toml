@@ -1,0 +1,25 @@
+[project]
+name = "gibson-peg-turner"
+version = "0.1.0"
+description = "Parametric 3D-printed Gibson tuner tooling: peg turner, tuner case, marking template, and assembly jig — modelled in build123d, sliced + packed for a Bambu P1S via estampo."
+requires-python = ">=3.11"
+dependencies = [
+    "build123d>=0.10",   # parametric CAD for every *.py part script
+    "pip-hinge>=0.1",    # print-in-place hinge library used by tuner_case*.py
+    "estampo>=0.4.4",    # slice + pack pipeline (estampo.toml in each print dir)
+    "bambox>=0.6.1",     # repacks OrcaSlicer .gcode.3mf for the Bambu P1S
+    "gib-tuners",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+# Flat collection of scripts, not an installable package — uv manages the
+# environment only.
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+gib-tuners = { git = "https://github.com/pzfreo/gib-tuners-mk2" }

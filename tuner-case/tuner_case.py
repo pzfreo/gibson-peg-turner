@@ -63,20 +63,9 @@ Usage:
 import argparse
 import copy
 import math
-import os
-import sys
 from pathlib import Path
 
 OUT = Path(__file__).parent
-
-# --- Locate pip-hinge (the print-in-place piano hinge library) ---------------
-_pip = Path(os.environ.get("PIP_HINGE", OUT.parent / "pip-hinge")) / "src"
-if not (_pip / "pip_hinge").is_dir():
-    sys.exit(
-        f"Cannot find pip-hinge at {_pip}.\n"
-        "Clone it next to this repo, or set PIP_HINGE to its path."
-    )
-sys.path.insert(0, str(_pip))
 
 from build123d import (  # noqa: E402
     Align,
