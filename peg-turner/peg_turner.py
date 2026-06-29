@@ -12,7 +12,7 @@ Modelled in usage orientation:
   - z=30 top: solid cap, arm extends from here
   - Knob sits on arm; post goes through arm bore
   - Flange (top) + printed washer (bottom) retain knob axially
-  - Knob+post+bolt+washer spin freely as a unit
+  - Knob+post+screw+washer spin freely as a unit
 
 For printing:
   - Socket body: flip so arm is on the bed, pocket faces up
@@ -42,7 +42,7 @@ TPU_HEIGHT = SLOT_DEPTH  + TPU_WALL        # 19.0 — total height (Z)
 SOCKET_WALL   = 2.65
 SOCKET_SHORT  = TPU_SHORT + 2 * SOCKET_WALL   # 12.3 — short axis (Y)
 SOCKET_LONG   = TPU_LONG  + 2 * SOCKET_WALL   # 24.3 — long axis (X)
-SOCKET_CAP    = 18.0                           # solid cap above pocket (extra height pushes bolt from pegs)
+SOCKET_CAP    = 18.0                           # solid cap above pocket (extra height pushes screw from pegs)
 SOCKET_HEIGHT = TPU_HEIGHT + SOCKET_CAP        # 29.0 — total height (Z)
 POCKET_DEPTH  = TPU_HEIGHT                     # 19.0
 POCKET_CHAMFER = 0.5
@@ -59,13 +59,13 @@ ARM_BORE_DIA = 10.4   # POST_OD + 0.4mm clearance
 
 # ─── Knob Bushing Post (integral with knob) ──────────
 POST_OD       = 10.0   # bearing surface
-POST_HEIGHT   = 8.3    # ARM_HEIGHT + 0.3mm — protrudes below for washer
+POST_HEIGHT   = 8.6    # ARM_HEIGHT + 0.6mm — protrudes below for washer; 0.6mm axial float so the knob spins free
 FLANGE_DIA    = 14.0   # wider than bore, sits on arm top
 FLANGE_HEIGHT = 2.0    # shoulder ring
 
-# ─── Heat-set Insert (in knob post tip) ──────────────
-HEATSET_DIA   = 4.8    # slightly under 5mm insert for snug melt-in grip
-HEATSET_DEPTH = 11.0   # deep enough for 12mm bolt — extends past post into flange/barrel
+# ─── Self-tapping pilot hole (in knob post tip) ──────
+PILOT_DIA   = 2.5    # M3 thread-forming pilot for PETG-CF (~0.83× major Ø)
+PILOT_DEPTH = 10.0   # M3×10 screw engages ~8.5mm; ~1.5mm clearance so it can't bottom out
 
 # ─── Handle Knob ──────────────────────────────────────
 KNOB_OD       = 16.0
@@ -74,14 +74,15 @@ KNOB_EDGE_RAD = 3.0     # barrel rounding
 
 # ─── Printed Retaining Washer (PETG-CF) ──────────────
 WASHER_OD = 14.0    # must be > ARM_BORE_DIA (10.4mm) — covers bore
-WASHER_ID = 3.2     # M3 bolt clearance
-WASHER_H  = 4.0     # thick enough for bolt head counterbore + floor
+WASHER_ID = 3.2     # M3 screw shank clearance
+WASHER_H  = 4.0     # thick enough for screw head counterbore + floor
 WASHER_CBORE_DIA   = 6.0   # M3 pan head (5.5mm) + clearance
-WASHER_CBORE_DEPTH = 2.5   # recesses bolt head fully
+WASHER_CBORE_DEPTH = 2.5   # recesses screw head fully
+WASHER_FILLET      = 1.0   # round the outer corner on the counterbore (exposed) face
 
-# ─── M3 Bolt (ghost) ─────────────────────────────────
+# ─── M3 self-tapping screw (ghost) ───────────────────
 M3_SHAFT_DIA  = 3.0
-M3_SHAFT_LEN  = 12.0    # reaches heat-set through thicker washer + gap
+M3_SHAFT_LEN  = 10.0    # M3×10: ~1.5mm through washer floor + ~8.5mm into post
 M3_HEAD_DIA   = 5.5     # pan head
 M3_HEAD_H     = 2.0
 
@@ -90,7 +91,7 @@ ARM_Z_BOTTOM  = SOCKET_HEIGHT - ARM_HEIGHT     # 21.0
 ARM_Z_TOP     = SOCKET_HEIGHT                  # 29.0
 KNOB_Z_BOTTOM = ARM_Z_TOP + FLANGE_HEIGHT     # 31.0
 KNOB_Z_TOP    = KNOB_Z_BOTTOM + KNOB_HEIGHT   # 69.0
-POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 20.7 (0.3mm below arm)
+POST_TIP_Z    = ARM_Z_TOP - POST_HEIGHT        # 20.4 (0.6mm below arm)
 
 
 # ═══════════════════════════════════════════════════════
@@ -207,7 +208,7 @@ def build_handle_knob() -> Part:
     Built with barrel at z=0..KNOB_HEIGHT, flange below at z=0..-FLANGE_HEIGHT,
     and post below flange to z=-(FLANGE_HEIGHT+POST_HEIGHT).
 
-    Heat-set insert pocket at post tip for bolt retention.
+    Self-tapping pilot hole at post tip for screw retention.
 
     Print barrel-down (flat bottom on bed), post pointing up. No supports.
     """
@@ -236,11 +237,11 @@ def build_handle_knob() -> Part:
             Circle(POST_OD / 2)
         extrude(amount=-POST_HEIGHT)
 
-        # Heat-set insert pocket at post tip (boring upward from tip)
+        # Self-tapping pilot hole at post tip (boring upward from tip)
         post_tip_z = -(FLANGE_HEIGHT + POST_HEIGHT)
         with BuildSketch(Plane.XY.offset(post_tip_z)):
-            Circle(HEATSET_DIA / 2)
-        extrude(amount=HEATSET_DEPTH, mode=Mode.SUBTRACT)
+            Circle(PILOT_DIA / 2)
+        extrude(amount=PILOT_DEPTH, mode=Mode.SUBTRACT)
 
     return bp.part
 
@@ -250,10 +251,10 @@ def build_handle_knob() -> Part:
 # ═══════════════════════════════════════════════════════
 
 def build_retaining_washer() -> Part:
-    """Printed PETG-CF washer with bolt head counterbore.
+    """Printed PETG-CF washer with screw head counterbore.
 
     14mm OD × 4mm thick, 3.2mm M3 through-bore.
-    Counterbore on bottom (z=0) recesses bolt head flush.
+    Counterbore on bottom (z=0) recesses screw head flush.
     Top face (z=4) bears on post tip.
     Print flat, counterbore facing up. No supports.
     """
@@ -268,10 +269,20 @@ def build_retaining_washer() -> Part:
             align=(Align.CENTER, Align.CENTER, Align.MIN),
             mode=Mode.SUBTRACT,
         )
-        # Counterbore for bolt head (from bottom, z=0 upward)
+        # Counterbore for screw head (from bottom, z=0 upward)
         with BuildSketch(Plane.XY):
             Circle(WASHER_CBORE_DIA / 2)
         extrude(amount=WASHER_CBORE_DEPTH, mode=Mode.SUBTRACT)
+
+        # Round the outer corner on the counterbore (z=0) face — prints face-up
+        # (washer is sliced upside-down) and is the exposed rim in the assembly
+        outer_corner = (
+            bp.edges()
+            .filter_by(GeomType.CIRCLE)
+            .group_by(Axis.Z)[0]
+            .sort_by(SortBy.RADIUS)[-1]
+        )
+        fillet(outer_corner, WASHER_FILLET)
     return bp.part
 
 
@@ -279,8 +290,8 @@ def build_retaining_washer() -> Part:
 #  Ghost Hardware (for assembly visualization only)
 # ═══════════════════════════════════════════════════════
 
-def build_ghost_bolt() -> Part:
-    """M3 pan head bolt — ghost visualization.
+def build_ghost_screw() -> Part:
+    """M3×10 pan-head self-tapping screw — ghost visualization.
 
     Built with head at z=0 (bottom), shaft extending upward (+Z).
     """
@@ -295,21 +306,6 @@ def build_ghost_bolt() -> Part:
     return bp.part
 
 
-def build_ghost_heatset() -> Part:
-    """M3×4mm brass heat-set insert — ghost visualization."""
-    with BuildPart() as bp:
-        Cylinder(
-            HEATSET_DIA / 2, 4.0,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-        )
-        Cylinder(
-            M3_SHAFT_DIA / 2, 4.0,
-            align=(Align.CENTER, Align.CENTER, Align.MIN),
-            mode=Mode.SUBTRACT,
-        )
-    return bp.part
-
-
 # ═══════════════════════════════════════════════════════
 #  Build & Export
 # ═══════════════════════════════════════════════════════
@@ -320,8 +316,7 @@ if __name__ == "__main__":
     body    = build_socket_body()
     knob    = build_handle_knob()
     washer  = build_retaining_washer()
-    bolt    = build_ghost_bolt()
-    heatset = build_ghost_heatset()
+    screw   = build_ghost_screw()
 
     # Export individual STEP files (for slicing)
     export_step(tpu, str(OUT / "tpu_insert.step"))
@@ -349,20 +344,15 @@ if __name__ == "__main__":
     washer_asm.label = "Retaining Washer"
     washer_asm.color = Color("forestgreen")
 
-    # Ghost bolt — head inside washer counterbore, shaft goes up into heat-set
-    bolt_z = POST_TIP_Z - WASHER_H  # bolt head sits at washer bottom (inside counterbore)
-    bolt_asm = Pos(ARM_LENGTH, 0, bolt_z) * bolt
-    bolt_asm.label = "M3 Bolt"
-    bolt_asm.color = Color("gold")
-
-    # Ghost heat-set — in knob post tip
-    heatset_asm = Pos(ARM_LENGTH, 0, POST_TIP_Z) * heatset
-    heatset_asm.label = "Heat-set Insert"
-    heatset_asm.color = Color("darkorange")
+    # Ghost screw — head inside washer counterbore, shaft self-taps up into the post
+    screw_z = POST_TIP_Z - WASHER_H  # screw head sits at washer bottom (inside counterbore)
+    screw_asm = Pos(ARM_LENGTH, 0, screw_z) * screw
+    screw_asm.label = "M3×10 Self-tapping Screw"
+    screw_asm.color = Color("gold")
 
     assembly = Compound(
         label="Peg Turner Assembly",
-        children=[body, tpu_asm, knob_asm, washer_asm, bolt_asm, heatset_asm],
+        children=[body, tpu_asm, knob_asm, washer_asm, screw_asm],
     )
     export_step(assembly, str(OUT / "assembly.step"))
 
@@ -375,12 +365,12 @@ if __name__ == "__main__":
     try:
         from ocp_vscode import show
         show(
-            body, tpu_asm, knob_asm, washer_asm, bolt_asm, heatset_asm,
+            body, tpu_asm, knob_asm, washer_asm, screw_asm,
             names=["Socket Body", "TPU Insert", "Handle Knob",
-                   "Retaining Washer", "M3 Bolt", "Heat-set Insert"],
+                   "Retaining Washer", "M3×10 Self-tapping Screw"],
             colors=["dimgray", "royalblue", "silver",
-                    "forestgreen", "gold", "darkorange"],
-            alphas=[1.0, 0.8, 1.0, 1.0, 0.4, 0.4],
+                    "forestgreen", "gold"],
+            alphas=[1.0, 0.8, 1.0, 1.0, 0.4],
         )
     except Exception:
         pass
