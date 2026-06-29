@@ -1,23 +1,25 @@
 [project]
 name = "gibson-peg-turner"
-version = "0.0.0"
-description = "3D-printable Gibson tuner kit: peg turner, frame marking template, and clamshell case"
-requires-python = ">=3.10,<3.14"
+version = "0.1.0"
+description = "Parametric 3D-printed Gibson tuner tooling: peg turner, tuner case, marking template, and assembly jig — modelled in build123d, sliced + packed for a Bambu P1S via estampo."
+requires-python = ">=3.11,<3.13"   # the template extra's gib-tuners pins build123d<0.11 -> vtk 9.3.1, which has no cp313 wheel
 dependencies = [
-    "build123d>=0.10",
-    "pip-hinge>=0.1.0",
+    "build123d>=0.10",   # parametric CAD for every *.py part script
+    "pip-hinge>=0.1",    # print-in-place hinge library used by tuner_case*.py
+    "estampo>=0.4.4",    # slice + pack pipeline (estampo.toml in each print dir)
+    "bambox>=0.6.1",     # repacks OrcaSlicer .gcode.3mf for the Bambu P1S
 ]
 
 [project.optional-dependencies]
-# marking_template.py imports the frame geometry from the sibling gib-tuners-mk2
-# repo (its single source of truth). It drags in a heavy tree (trimesh,
-# ocp-vscode, ...), so it is opt-in: `uv sync --extra template`.
+# marking_template.py imports its frame geometry from gib-tuners (the single
+# source of truth). It drags in a heavy tree (trimesh, ocp-vscode, vtk, ...),
+# so it is opt-in:  uv sync --extra template
 template = ["gib-tuners"]
-dev = ["pytest>=7"]
+dev = ["pytest>=8"]
 
 [tool.uv]
-# This repo is a set of build scripts, not an installable package.
+# Flat collection of build scripts, not an installable package.
 package = false
 
 [tool.uv.sources]
-gib-tuners = { path = "../gib-tuners-mk2", editable = true }
+gib-tuners = { git = "https://github.com/pzfreo/gib-tuners-mk2" }
