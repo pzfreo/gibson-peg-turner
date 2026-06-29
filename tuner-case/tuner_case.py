@@ -65,9 +65,7 @@ import copy
 import math
 from pathlib import Path
 
-OUT = Path(__file__).parent
-
-from build123d import (  # noqa: E402
+from build123d import (
     Align,
     Axis,
     Box,
@@ -80,7 +78,9 @@ from build123d import (  # noqa: E402
     extrude,
 )
 
-from pip_hinge import HingeParams, Knuckle, make_hinge  # noqa: E402
+from pip_hinge import HingeParams, Knuckle, make_hinge
+
+OUT = Path(__file__).parent
 
 
 # ===========================================================================

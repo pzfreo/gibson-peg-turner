@@ -583,13 +583,15 @@ dependencies = [
     { name = "bambox" },
     { name = "build123d" },
     { name = "estampo" },
-    { name = "gib-tuners" },
     { name = "pip-hinge" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "pytest" },
+]
+template = [
+    { name = "gib-tuners" },
 ]
 
 [package.metadata]
@@ -597,12 +599,11 @@ requires-dist = [
     { name = "bambox", specifier = ">=0.6.1" },
     { name = "build123d", specifier = ">=0.10" },
     { name = "estampo", specifier = ">=0.4.4" },
-    { name = "gib-tuners", git = "https://github.com/pzfreo/gib-tuners-mk2" },
+    { name = "gib-tuners", marker = "extra == 'template'", git = "https://github.com/pzfreo/gib-tuners-mk2" },
     { name = "pip-hinge", specifier = ">=0.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
+provides-extras = ["template", "dev"]
 
 [[package]]
 name = "h11"

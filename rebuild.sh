@@ -11,9 +11,11 @@
 #
 # Profiles are pinned per-config (profiles/), so slicing is reproducible.
 #
-# External deps:
-#   * tuner_case*.py need the pip-hinge package        (pip install pip-hinge)
-#   * marking_template.py needs sibling gib-tuners-mk2 (env: GIB_TUNERS_MK2)
+# Dependencies are managed by uv (pyproject.toml). gib-tuners — needed only by
+# marking_template.py — is an optional extra, so run this script under it to
+# build the marking template too:
+#     uv run --extra template ./rebuild.sh
+# Without the extra, every other part still builds; marking_template just fails.
 
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
