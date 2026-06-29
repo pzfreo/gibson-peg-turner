@@ -2,6 +2,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 estampo_output/
+.DS_Store
 
 # Generated CAD — regenerate from the build123d scripts (python <script>.py)
 *.step
