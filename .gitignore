@@ -1,1 +1,11 @@
 __pycache__/
+.pytest_cache/
+.venv/
+
+# Generated CAD — regenerate from the build123d scripts (python <script>.py)
+*.step
+*.stl
+*.3mf
+*.dxf
+*.svg
+*.pdf
