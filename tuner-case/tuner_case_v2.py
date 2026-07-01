@@ -64,6 +64,9 @@ FOAM_T = 5.0         # foam thickness ABOVE and BELOW the insert (mm); zero Z ma
 #                      by design so the foam grips the tuners top and bottom
 SLIDE_CLR = 0.4      # X/Y slide clearance between the insert and the shell bore
 
+MAGNET_T = 2.7               # corner disc-magnet thickness (mm); v2-only, thicker
+POCKET_DEPTH = MAGNET_T + 0.1  # than v1's tc.MAGNET_T (=3.0). OD/boss stay from tc.
+
 # Hinge feel (both are HingeParams knobs; defaults printed too stiff).
 HINGE_PIVOT_CLR = 0.7        # radial pin/bore gap. 0.6 freed the cracking but was
 #                              still hard to rotate; 0.7 spins freely (don't exceed
@@ -168,7 +171,7 @@ def _shell_leaf(x_sign: int, leaf_outer: float, leaf_depth: float, leaf_w: float
 
 def _shell_magnets(leaf: Part, x_sign: int, leaf_outer: float, leaf_depth: float,
                    leaf_w: float, h_total: float, wall: float) -> Part:
-    """Ø6x3 magnet pockets at the two FRONT corners (long edge opposite hinge).
+    """Ø6x2.7 magnet pockets at the two FRONT corners (long edge opposite hinge).
 
     Mirrors tuner_case.add_corner_magnet_pockets: a boss pushed into each corner
     fillets it, and a pocket opens at the rim so closed leaves attract."""
@@ -181,9 +184,9 @@ def _shell_magnets(leaf: Part, x_sign: int, leaf_outer: float, leaf_depth: float
         boss = Cylinder(tc.BOSS_R, h_total,
                         align=(Align.CENTER, Align.CENTER, Align.MIN)).translate(
                             (x_boss, y_boss, 0))
-        pocket = Cylinder(tc.POCKET_R, tc.POCKET_DEPTH,
+        pocket = Cylinder(tc.POCKET_R, POCKET_DEPTH,
                           align=(Align.CENTER, Align.CENTER, Align.MIN)).translate(
-                              (x_boss, y_boss, h_total - tc.POCKET_DEPTH))
+                              (x_boss, y_boss, h_total - POCKET_DEPTH))
         leaf = (leaf + boss) - pocket
     return leaf
 
